@@ -1,0 +1,7 @@
+{
+  "vivid.constraint.min": "Min: %d",
+  "vivid.constraint.max": "Max %d",
+  "vivid.constraint.matches": "Matches %s",
+  "vivid.enabled.true": "On",
+  "vivid.enabled.false": "Off"
+}
