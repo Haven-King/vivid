@@ -20,7 +20,10 @@ import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static dev.inkwell.vivid.Vivid.BLUR;
 
 // TODO: This class needs to be cleaned up/split up in general
 public class ConfigScreen extends Screen implements DrawableExtensions {
@@ -32,6 +35,11 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 	private int activeCategory = 0;
 	private int scrollAmount = 0;
+
+	private int contentWidth;
+	private int headerSize;
+	private int visibleHeight;
+	private float margin;
 
 	private double clickedX;
 	private float lastTickDelta;
@@ -78,7 +86,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 					categoryWidth,
 					12,
 					categories.get(i).getName(),
-					(b) -> this.setActiveCategory(categoryId), (a, b, c, d) -> {});
+					(b) -> this.setActiveCategory(categoryId), categories.get(i).getTooltips());
 
 			if (i == activeCategory) {
 				button.active = false;
@@ -92,6 +100,12 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 			this.addButton(button);
 		}
+
+		headerSize = client.textRenderer.fontHeight * 3;
+		contentWidth = height > width ? (width - 6) : width / 2;
+		visibleHeight = this.height - headerSize;
+		margin = height > width ? 0 : width / 4F;
+
 	}
 
 	@Override
@@ -117,15 +131,14 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		this.lastTickDelta = tickDelta;
 		this.renderBackground(matrices);
 
-		int contentHeight = lastY - this.height / 8;
-		int visibleHeight = this.height - this.height / 8;
+		int contentHeight = lastY - headerSize;
+
 
 		if (contentHeight > visibleHeight) {
-			// TODO: Fix scrollbar size/position
 			float ratio = visibleHeight / (float) contentHeight;
-			int startX = (width / 4) * 3 + 2;
-			int startY = (int) (this.height / 8 - scrollAmount * ratio) + 9;
-			int height = (int) ((int) (this.height / 8 + visibleHeight * ratio / 2) - scrollAmount * ratio) + 9 - startY;
+			int startX = height > width ? contentWidth + 2 : (int) (margin * 3 + 2);
+			int startY = (int) (this.headerSize - scrollAmount * ratio) + 10;
+			int height = (int) (ratio * visibleHeight) - this.headerSize;
 			boolean hovered = mouseX >= startX && mouseY >= startY && mouseX <= startX + width && mouseY <= startY + height;
 			this.style.renderScrollbar(matrices, startX, startY, 3, height, false, hovered);
 		}
@@ -134,14 +147,16 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 		super.render(matrices, mouseX, mouseY, tickDelta);
 
+
 		matrices.push();
-		matrices.translate(width / 4F, 30, 0F);
+		matrices.translate(margin, 0, 0F);
 
 		GL11.glEnable(GL11.GL_SCISSOR_TEST);
 		Window window = client.getWindow();
-		GL11.glScissor(0, 0, window.getFramebufferWidth(), (window.getFramebufferHeight() / 10) * 9);
+		float test = ((this.height - this.headerSize) / (float) this.height);
+		GL11.glScissor(0, 0, window.getFramebufferWidth(), (int) (window.getFramebufferHeight() * test));
 
-		int y = 0;
+		int y = this.headerSize;
 		Group<Group<ListEntry>> sections = categories.get(activeCategory);
 		int sectionColor = this.style.sectionColor.getColor() != null
 				? this.style.sectionColor.getColor().getRgb()
@@ -157,6 +172,10 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			Group<ListEntry> section = sections.get(i);
 			this.draw(matrices, this.textRenderer, section.getName(), 0, y + scrollAmount, sectionColor, 0.5F);
 
+			if (mouseX >= margin && mouseX <= margin + this.contentWidth / 2F && mouseY >= y + scrollAmount && mouseY <= y + scrollAmount + 10) {
+				this.addTooltips(section.getTooltips());
+			}
+
 			y += 10;
 
 			for (int j = 0; j < section.size(); ++j) {
@@ -166,10 +185,10 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 					focusedJ = j;
 					focusedY = y + scrollAmount;
 				} else {
-					entry.render(matrices, j, width / 2, y + scrollAmount, mouseX - width / 4, mouseY - 30, tickDelta);
+					entry.render(matrices, j, contentWidth, y + scrollAmount, (int) (mouseX - margin), mouseY, tickDelta);
 				}
 
-				if (mouseY > 30 && entry.isMouseOver(mouseX - width / 4F, mouseY - 30) && (entry == this.getFocused() || this.getFocused() == null)) {
+				if (mouseY > this.headerSize && entry.isMouseOver(mouseX - margin, mouseY) && (entry == this.getFocused() || this.getFocused() == null)) {
 					entry.addTooltipsToList(tooltips);
 					this.hovered = entry;
 				}
@@ -187,12 +206,12 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
 		if (this.getFocused() instanceof ListEntry) {
-			((ListEntry) this.getFocused()).render(matrices, focusedJ, width / 2, focusedY, mouseX - width / 4, mouseY - 30, tickDelta);
+			((ListEntry) this.getFocused()).render(matrices, focusedJ, contentWidth, focusedY, (int) (mouseX - margin), mouseY, tickDelta);
 		}
 
 		matrices.pop();
 
-		lastY = y;
+		lastY = y - this.headerSize;
 
 		if (!tooltips.isEmpty()) {
 			this.renderTooltip(matrices, tooltips, mouseX, mouseY);
@@ -232,17 +251,17 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	}
 
 	private int minScrollAmount() {
-		return (int) -(this.lastY - this.height + 30 + height / 8F);
+		return -(this.lastY - this.height + this.headerSize);
 	}
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-		if (clickedX > (width / 4F) * 3 + 2 && clickedX < (width / 4F) * 3 + 5) {
+		if (clickedX > (margin) * 3 + 2 && clickedX < margin * 3 + 5) {
 			return mouseScrolled(mouseX, mouseY, -deltaY);
 		} else {
 			for (Group<ListEntry> section : categories.get(activeCategory)) {
 				for (ListEntry entry : section) {
-					if (entry.mouseDragged(mouseX - width / 4F, mouseY - 30, button, deltaX, deltaY)) {
+					if (entry.mouseDragged(mouseX - width / 4F, mouseY, button, deltaX, deltaY)) {
 						return true;
 					}
 				}
@@ -266,22 +285,22 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 				}
 			}
 		} else {
-			if (getFocused() == null || !getFocused().isMouseOver(mouseX - width / 4F, mouseY - 30)) {
+			if (getFocused() == null || !getFocused().isMouseOver(mouseX - width / 4F, mouseY)) {
 				for (Group<ListEntry> section : categories.get(activeCategory)) {
 					for (ListEntry entry : section) {
 						if (entry.holdsFocus()) {
-							entry.setFocused(entry.isMouseOver(mouseX - width / 4F, mouseY - 30));
+							entry.setFocused(entry.isMouseOver(mouseX - width / 4F, mouseY));
 
 							if (entry.isFocused()) {
 								this.setFocused(entry);
 							}
 						}
 
-						bl = bl || entry.mouseClicked(mouseX - width / 4F, mouseY - 30, button);
+						bl = bl || entry.mouseClicked(mouseX - width / 4F, mouseY, button);
 					}
 				}
 			} else {
-				bl = getFocused().mouseClicked(mouseX - width / 4F, mouseY - 30, button);
+				bl = getFocused().mouseClicked(mouseX - width / 4F, mouseY, button);
 			}
 		}
 
@@ -329,8 +348,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 	@Override
 	public void renderOrderedTooltip(MatrixStack matrices, List<? extends OrderedText> lines, int x, int y) {
-		// TODO: Would be great to be able to blur the things behind the tooltips. Reach out to Pyrofab.
-		if (!lines.isEmpty()) {
+		if (!lines.isEmpty() && this.client != null) {
 			int i = 0;
 
 			for (OrderedText orderedText : lines) {
@@ -350,10 +368,6 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			k /= 2;
 			l /= 2;
 
-			if (k + i > this.width) {
-				k -= 28 + i;
-			}
-
 			if (l + n + 6 > this.height) {
 				l = this.height - n - 6;
 			}
@@ -370,18 +384,52 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			matrices.translate(k, l, 0);
 
 			matrices.push();
+
+			int offset = 10;
+
+			float startX = (k - offset) / (this.width * 2);
+			float startY = 1F - (l + n + offset) / (this.height * 2);
+			float endX = (k + i + offset) / (this.width * 2);
+			float endY = 1F - (l - offset) / (this.height * 2);
+
+			if (l - offset < 0) {
+				float dY = n + offset + this.textRenderer.fontHeight * 3;
+				matrices.translate(0, dY, 0);
+				startY -= (dY / this.height) / 2;
+				endY -= (dY / this.height) / 2;
+			}
+
+			if (k - offset < 0) {
+				float dX = 3 - (k - offset);
+				matrices.translate(dX, 0, 0);
+				startX += (dX / this.width) / 2;
+				endX += (dX / this.width) / 2;
+			}
+
+			if (k + i + offset > (this.width * 2)) {
+				float dX = -(k + i + offset - (this.width * 2F)) - 3;
+				matrices.translate(dX, 0, 0);
+				startX += (dX / this.width) / 2;
+				endX += (dX / this.width) / 2;
+			}
+
+			BLUR.setUniformValue("Progress", 1F);
+			BLUR.setUniformValue("Radius", 4F);
+			BLUR.setUniformValue("Start", startX, startY);
+			BLUR.setUniformValue("End", endX, endY);
+			BLUR.render(1F);
+
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder bufferBuilder = tessellator.getBuffer();
 			bufferBuilder.begin(7, VertexFormats.POSITION_COLOR);
 			Matrix4f matrix4f = matrices.peek().getModel();
 
-			int color = 0xB0000000;
+			int color = 0x80000000;
 
 			if (hovered instanceof ValueEntry) {
 				color = ((ValueEntry<?>) hovered).hasError() ? 0xB0800000 : color;
 			}
 
-			int offset = 10;
 			fill(matrix4f, bufferBuilder, k - offset, l - offset, k + i + offset, l + n + offset, 400, color);
 			RenderSystem.enableDepthTest();
 			RenderSystem.disableTexture();

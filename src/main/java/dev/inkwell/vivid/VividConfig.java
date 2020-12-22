@@ -53,9 +53,17 @@ public class VividConfig implements ModMenuApi {
 				String categoryName = "vivid.category" + i + ".name";
 				CategoryBuilder category = builder.startCategory(new TranslatableText(categoryName));
 
+				for (int j = 0; j < 10; ++j) {
+					category.addTooltip(new TranslatableText("vivid.category" + i + ".tooltip." + j));
+				}
+
 				for (int j = 0; j < 5; ++j) {
 					String sectionName = categoryName + ".section" + j + ".name";
 					SectionBuilder section = category.addSection(new TranslatableText(sectionName));
+
+					for (int k = 0; k < 10; ++k) {
+						section.addTooltip(new TranslatableText(categoryName + ".section" + j + ".tooltip." + k));
+					}
 
 					int k = 0;
 					section.add(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), (IntegerEntry::new))

@@ -67,6 +67,8 @@ public class ScreenStyle extends DrawableHelper implements DrawableExtensions {
 		this.renderBackground(screen, parent, matrices, tickDelta);
 
 		if (blurAmount > 0F) {
+			BLUR.setUniformValue("Start", 0F, 0F);
+			BLUR.setUniformValue("End", 1F, 1F);
 			BLUR.setUniformValue("Progress", 1F);
 			BLUR.setUniformValue("Radius", blurAmount);
 			BLUR.render(1F);

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigScreenBuilder {
-	private final List<Group<SectionBuilder>> children = new ArrayList<>();
+	private final List<CategoryBuilder> children = new ArrayList<>();
 
 	private ScreenStyle style = ScreenStyle.DEFAULT;
 
@@ -30,13 +30,8 @@ public class ConfigScreenBuilder {
 	public ConfigScreen build(Screen parent) {
 		List<Group<Group<ListEntry>>> categories = new ArrayList<>();
 
-		for (Group<SectionBuilder> categoryBuilder : children) {
-			Group<Group<ListEntry>> category = new Group<>(categoryBuilder.getName());
-			categories.add(category);
-
-			for (SectionBuilder sectionBuilder : categoryBuilder) {
-				category.add(sectionBuilder.build());
-			}
+		for (CategoryBuilder categoryBuilder : children) {
+			categories.add(categoryBuilder.build());
 		}
 
 		return new ConfigScreen(parent, categories).withStyle(this.style);

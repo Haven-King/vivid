@@ -1,6 +1,7 @@
 package dev.inkwell.vivid.util;
 
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -10,6 +11,7 @@ public class Group<T> implements Iterable<T> {
 	private final Set<T> set = new HashSet<>();
 
 	protected final MutableText name;
+	protected final List<Text> tooltips = new ArrayList<>();
 
 	public Group(MutableText name) {
 		this.name = name;
@@ -23,6 +25,18 @@ public class Group<T> implements Iterable<T> {
 				set.add(member);
 			}
 		}
+
+		return this;
+	}
+
+	public final Group<T> add(Text tooltip) {
+		this.tooltips.add(tooltip);
+
+		return this;
+	}
+
+	public final Group<T> addAll(Collection<Text> tooltips) {
+		this.tooltips.addAll(tooltips);
 
 		return this;
 	}
@@ -43,5 +57,9 @@ public class Group<T> implements Iterable<T> {
 	@Override
 	public Iterator<T> iterator() {
 		return list.iterator();
+	}
+
+	public List<Text> getTooltips() {
+		return this.tooltips;
 	}
 }
