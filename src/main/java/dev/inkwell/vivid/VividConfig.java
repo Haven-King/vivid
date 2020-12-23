@@ -34,15 +34,15 @@ public class VividConfig implements ModMenuApi {
 		CategoryBuilder config = builder.startCategory(new TranslatableText("vivid.config"));
 
 		SectionBuilder animation = config.addSection(new TranslatableText("vivid.config.animation"));
-		animation.addConfigEntry(new TranslatableText("vivid.config.animation.enabled"), () -> true, () -> true, (name, defaultValue, value) -> {
-			BooleanEntry entry = new BooleanEntry(name, defaultValue, value);
-			entry.setSaveListener(b -> Animation.enabled = b);
+		animation.addConfigEntry(new TranslatableText("vivid.config.animation.enabled"), () -> true, () -> true, b -> Animation.enabled = (boolean) b, (name, defaultValue, consumer, value) -> {
+			BooleanEntry entry = new BooleanEntry(name, defaultValue, consumer, value);
+			entry.setSaveListener(consumer);
 			return entry;
 		});
 
-		animation.addConfigEntry(new TranslatableText("vivid.config.animation.speed"), () -> 0.2F, () -> 0.2F, (name, defaultValue, value) -> {
-			FloatEntry entry = new FloatEntry(name, defaultValue, value);
-			entry.setSaveListener(f -> Animation.speed = f);
+		animation.addConfigEntry(new TranslatableText("vivid.config.animation.speed"), () -> 0.2F, () -> 0.2F, f -> Animation.speed = (float) f, (name, defaultValue, consumer, value) -> {
+			FloatEntry entry = new FloatEntry(name, defaultValue, consumer, value);
+			entry.setSaveListener(consumer);
 			entry.setBounds(0.01F, 2F);
 			return entry;
 		});
@@ -66,63 +66,63 @@ public class VividConfig implements ModMenuApi {
 					}
 
 					int k = 0;
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), (IntegerEntry::new))
-							.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), (IntegerEntry::new))
-							.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), (IntegerEntry::new))
-							.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), (IntegerEntry::new));
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), t -> {}, (IntegerEntry::new))
+							.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), t -> {}, (IntegerEntry::new))
+							.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), t -> {}, (IntegerEntry::new))
+							.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), t -> {}, (IntegerEntry::new));
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), ((name, defaultValue, value) -> {
-						IntegerEntry entry = new IntegerEntry(name, defaultValue, value);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(10), t -> {}, (name, defaultValue, consumer, value) -> {
+						IntegerEntry entry = new IntegerEntry(name, defaultValue, consumer, value);
 						entry.setMin(0);
 
 						return entry;
-					}));
+					});
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> Direction.NORTH, () -> Direction.SOUTH, EnumDropdown::new);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> Direction.NORTH, () -> Direction.SOUTH, t -> {}, EnumDropdown::new);
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> TriState.DEFAULT, () -> TriState.TRUE, EnumSelector::new);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> TriState.DEFAULT, () -> TriState.TRUE, t -> {}, EnumSelector::new);
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> Enabled.ON, () -> Enabled.ON, EnumSelector::new);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> Enabled.ON, () -> Enabled.ON,  t -> {}, EnumSelector::new);
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(100), (name, defaultValue, value) -> {
-						IntegerSlider entry = new IntegerSlider(name, defaultValue, value);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0, () -> random.nextInt(100), t -> {}, (name, defaultValue, consumer, value) -> {
+						IntegerSlider entry = new IntegerSlider(name, defaultValue, consumer, value);
 						entry.setBounds(0, 100);
 
 						return entry;
 					});
 
-					section.addConfigEntry(new TranslatableText(sectionName + "element" + k++), () -> "Default", () -> "Value", StringEntry::new);
+					section.addConfigEntry(new TranslatableText(sectionName + "element" + k++), () -> "Default", () -> "Value", t -> {}, StringEntry::new);
 
-					section.addConfigEntry(new TranslatableText(sectionName + "element" + k++), () -> "xxx-xx-xxxx", () -> "012-34-5678", (name, defaultValue, value) -> {
-						TextEntry<String> entry = new StringEntry(name, defaultValue, value).setMaxLength(11);
+					section.addConfigEntry(new TranslatableText(sectionName + "element" + k++), () -> "xxx-xx-xxxx", () -> "012-34-5678", t -> {}, (name, defaultValue, saveConsumer, value) -> {
+						TextEntry<String> entry = new StringEntry(name, defaultValue, saveConsumer, value).setMaxLength(11);
 						entry.setRegex( "^(?!666|000|9\\d{2})\\d{3}-(?!00)\\d{2}-(?!0{4})\\d{4}$");
 
 						return entry;
 					});
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0L, () -> (long) random.nextInt(100), (name, defaultValue, value) -> {
-						LongSlider entry = new LongSlider(name, defaultValue, value);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0L, () -> (long) random.nextInt(100), t -> {}, (name, defaultValue, saveConsumer, value) -> {
+						LongSlider entry = new LongSlider(name, defaultValue, saveConsumer, value);
 						entry.setBounds(0L, 100L);
 
 						return entry;
 					});
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0F, () -> random.nextFloat() * 100, (name, defaultValue, value) -> {
-						FloatSlider entry = new FloatSlider(name, defaultValue, value);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0F, () -> random.nextFloat() * 100, t -> {}, (name, defaultValue, saveConsumer, value) -> {
+						FloatSlider entry = new FloatSlider(name, defaultValue, saveConsumer, value);
 						entry.setBounds(0F, 100F);
 
 						return entry;
 					});
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> "Red", () -> "Green", (name, defaultValue, value) -> {
-						StringDropdown entry = new StringDropdown(name, defaultValue, value);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> "Red", () -> "Green", t -> {}, (name, defaultValue, saveConsumer, value) -> {
+						StringDropdown entry = new StringDropdown(name, defaultValue, saveConsumer, value);
 						entry.setPossibleValues(new String[] {"Red", "Green", "Blue", "Black"});
 
 						return entry;
 					});
 
-					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0D, () -> random.nextDouble() * 100D, (name, defaultValue, value) -> {
-						DoubleSlider entry = new DoubleSlider(name, defaultValue, value);
+					section.addConfigEntry(new TranslatableText(sectionName + ".element" + k++), () -> 0D, () -> random.nextDouble() * 100D, t -> {}, (name, defaultValue, saveConsumer, value) -> {
+						DoubleSlider entry = new DoubleSlider(name, defaultValue, saveConsumer, value);
 						entry.setBounds(0D, 100D);
 
 						return entry;

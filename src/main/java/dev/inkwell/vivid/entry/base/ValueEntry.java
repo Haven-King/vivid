@@ -9,14 +9,16 @@ import java.util.function.Supplier;
 public abstract class ValueEntry<T> extends ListEntry {
 	protected final Supplier<T> defaultValue;
 	private Consumer<T> changedListener = t -> {};
+	private Consumer<T> saveConsumer;
 
 	private T value;
 
 	@SuppressWarnings("unchecked")
-	public ValueEntry(MutableText name, Supplier<?> defaultValue, Object value) {
+	public ValueEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
 		super(name);
 		this.defaultValue = (Supplier<T>) defaultValue;
 		this.value = (T) value;
+		this.saveConsumer = (Consumer<T>) saveConsumer;
 	}
 
 	protected final T getValue() {
@@ -47,9 +49,18 @@ public abstract class ValueEntry<T> extends ListEntry {
 		return (int) (30 * parent.getScale());
 	}
 
-	public final ValueEntry<T> setSaveListener(Consumer<T> listener) {
+	public final ValueEntry<T> setChangedListener(Consumer listener) {
 		this.changedListener = listener;
 		return this;
+	}
+
+	public final ValueEntry<T> setSaveListener(Consumer listener) {
+		this.saveConsumer = listener;
+		return this;
+	}
+
+	public final void save() {
+		this.saveConsumer.accept(this.getValue());
 	}
 
 	public String getDefaultValueAsString() {

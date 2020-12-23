@@ -11,14 +11,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DoubleEntry extends TextEntry<Double> implements Bounded<Double> {
 	private Double min = null;
 	private Double max = null;
 
-	public DoubleEntry(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public DoubleEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 	}
 
 	@Override

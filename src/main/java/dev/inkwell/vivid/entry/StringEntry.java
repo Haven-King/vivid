@@ -4,11 +4,12 @@ import dev.inkwell.vivid.entry.base.TextEntry;
 import net.minecraft.text.MutableText;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class StringEntry extends TextEntry<String> {
-	public StringEntry(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public StringEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 	}
 
 	@Override

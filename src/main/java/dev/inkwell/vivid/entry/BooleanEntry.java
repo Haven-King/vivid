@@ -4,11 +4,12 @@ import dev.inkwell.vivid.entry.base.ValueEntry;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class BooleanEntry extends ValueEntry<Boolean> {
-	public BooleanEntry(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public BooleanEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 	}
 
 	@Override

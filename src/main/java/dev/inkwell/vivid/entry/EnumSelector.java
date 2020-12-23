@@ -8,11 +8,12 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableText;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class EnumSelector<T extends Enum<T>> extends ValueEntry<T> {
-	public EnumSelector(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public EnumSelector(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 	}
 
 	@Override

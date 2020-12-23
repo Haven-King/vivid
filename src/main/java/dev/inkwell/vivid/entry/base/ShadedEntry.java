@@ -3,6 +3,7 @@ package dev.inkwell.vivid.entry.base;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static dev.inkwell.vivid.Vivid.BLUR;
@@ -10,8 +11,8 @@ import static dev.inkwell.vivid.Vivid.BLUR;
 public abstract class ShadedEntry<T> extends ValueEntry<T> {
 	protected boolean enabled = false;
 
-	public ShadedEntry(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public ShadedEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 	}
 
 	protected abstract double getShadeHeight();

@@ -11,14 +11,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FloatEntry extends TextEntry<Float> implements Bounded<Float> {
 	private Float min = null;
 	private Float max = null;
 
-	public FloatEntry(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public FloatEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 	}
 
 	@Override

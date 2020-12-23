@@ -1,16 +1,18 @@
 package dev.inkwell.vivid.util;
 
-public class Quad<A, B, C, D> {
+public class Quintuple<A, B, C, D, E> {
 	private final A a;
 	private final B b;
 	private final C c;
 	private final D d;
+	private final E e;
 
-	public Quad(A a, B b, C c, D d) {
+	public Quintuple(A a, B b, C c, D d, E e) {
 		this.a = a;
 		this.b = b;
 		this.c = c;
 		this.d = d;
+		this.e = e;
 	}
 
 	public A getA() {
@@ -27,5 +29,9 @@ public class Quad<A, B, C, D> {
 
 	public D getD() {
 		return d;
+	}
+
+	public E getE() {
+		return e;
 	}
 }

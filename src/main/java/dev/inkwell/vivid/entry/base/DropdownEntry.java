@@ -6,14 +6,15 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 	private T[] possibleValues;
 	private float[] hoverOpacities;
 
-	public DropdownEntry(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public DropdownEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 	}
 
 	@Override

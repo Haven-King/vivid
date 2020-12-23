@@ -13,6 +13,7 @@ import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -28,8 +29,8 @@ public abstract class TextEntry<T> extends ValueEntry<T> implements TickableElem
 	private Predicate<String> textPredicate = this::matches;
 
 	@SuppressWarnings("unchecked")
-	public TextEntry(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public TextEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 		this.text = this.valueOf((T) value);
 	}
 

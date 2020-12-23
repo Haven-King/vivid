@@ -10,14 +10,15 @@ import net.minecraft.text.MutableText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class SliderEntry<T extends Number> extends ValueEntry<T> implements Bounded<T> {
 	private T min = null;
 	private T max = null;
 
-	public SliderEntry(MutableText name, Supplier<?> defaultValue, Object value) {
-		super(name, defaultValue, value);
+	public SliderEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+		super(name, defaultValue, saveConsumer, value);
 	}
 
 	protected abstract float getPercentage();
