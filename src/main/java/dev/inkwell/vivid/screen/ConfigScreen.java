@@ -134,11 +134,15 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 		int contentHeight = lastY - headerSize;
 
+		Group<Group<ListEntry>> sections = categories.get(activeCategory);
+		int sectionColor = this.style.sectionColor.getColor() != null
+				? this.style.sectionColor.getColor().getRgb()
+				: 0xFFFFFFFF;
 
 		if (contentHeight > visibleHeight) {
 			float ratio = visibleHeight / (float) contentHeight;
 			int startX = height > width ? (int) (contentWidth + margin + 2) : (int) (margin * 3 + 2);
-			int startY = (int) (this.headerSize - scrollAmount * ratio) + 10;
+			int startY = (int) (this.headerSize - scrollAmount * ratio) + (sections.get(0).getName().asString().isEmpty() ? 0 : 10);
 			int height = (int) (ratio * visibleHeight) - this.headerSize;
 			boolean hovered = mouseX >= startX && mouseY >= startY && mouseX <= startX + 3 && mouseY <= startY + height;
 			this.style.renderScrollbar(matrices, startX, startY, 3, height, false, hovered);
@@ -158,10 +162,6 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		GL11.glScissor(0, 0, window.getFramebufferWidth(), (int) (window.getFramebufferHeight() * test));
 
 		int y = this.headerSize;
-		Group<Group<ListEntry>> sections = categories.get(activeCategory);
-		int sectionColor = this.style.sectionColor.getColor() != null
-				? this.style.sectionColor.getColor().getRgb()
-				: 0xFFFFFFFF;
 
 		this.hasError = false;
 		this.hovered = null;
