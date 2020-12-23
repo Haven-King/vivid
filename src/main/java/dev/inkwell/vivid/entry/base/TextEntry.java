@@ -45,7 +45,7 @@ public abstract class TextEntry<T> extends ValueEntry<T> implements TickableElem
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
 		int left = (int) (width - 3 - textRenderer.getWidth(this.text.substring(selectionStart)) * parent.getScale());
-		float y1 = y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F);
+		float y1 = y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F) - 1;
 
 		if (selectionStart != selectionEnd) {
 			int right = (int) (width - 3 - textRenderer.getWidth(this.text.substring(selectionEnd)) * parent.getScale());

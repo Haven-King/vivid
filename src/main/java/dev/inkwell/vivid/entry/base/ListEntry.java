@@ -83,7 +83,7 @@ public abstract class ListEntry implements Element, DrawableExtensions {
 
 		renderHighlight(matrices, width, y, 0xFFFFFFFF);
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-		this.draw(matrices, textRenderer, this.getName(), 3, y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F), 0xFFFFFFFF, parent.getScale());
+		this.draw(matrices, textRenderer, this.getName(), 3, y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F) - 1, 0xFFFFFFFF, parent.getScale());
 	}
 
 	protected void renderHighlight(MatrixStack matrices, int width, int y, int color) {

@@ -36,7 +36,7 @@ public abstract class SliderEntry<T extends Number> extends ValueEntry<T> implem
 		String string = this.stringValue();
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 		int dX = (int) (width - 3 - textRenderer.getWidth(string) * parent.getScale());
-		draw(matrices, MinecraftClient.getInstance().textRenderer, string, dX, y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F), 0xFFFFFFFF, parent.getScale());
+		draw(matrices, MinecraftClient.getInstance().textRenderer, string, dX, y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F) - 1, 0xFFFFFFFF, parent.getScale());
 
 		int x1 = width / 2 + 6;
 		int x2 = width - 2 - Math.max(textRenderer.getWidth(String.valueOf(getMin())), textRenderer.getWidth(String.valueOf(getMax())));
