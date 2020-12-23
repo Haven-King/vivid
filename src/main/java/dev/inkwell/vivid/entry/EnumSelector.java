@@ -31,7 +31,7 @@ public class EnumSelector<T extends Enum<T>> extends ValueEntry<T> {
 			fill(matrices, x1, y, x2, y + this.getHeight(), 0xFFFFFFFF, b ?  0.25F : 0F);
 
 			MutableText text = enums[i] instanceof Translatable ? ((Translatable) enums[i]).getText() : new TranslatableText(enums[i].name());
-			drawCenteredText(matrices, textRenderer, text.styled(style -> style.withUnderline(b)), x1 + segmentSize / 2, y + getHeight() / 4F, 0xFFFFFFFF, 0.5F);
+			drawCenteredText(matrices, textRenderer, text.styled(style -> style.withUnderline(b)), x1 + segmentSize / 2, y + getHeight() / 4F, 0xFFFFFFFF, parent.getScale());
 		}
 	}
 

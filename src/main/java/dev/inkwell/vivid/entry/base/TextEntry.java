@@ -42,25 +42,24 @@ public abstract class TextEntry<T> extends ValueEntry<T> implements TickableElem
 	public void render(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
 		super.render(matrices, index, width, y, mouseX, mouseY, delta);
 
-		int color = index % 2 == 0 ? 0x33FFFFFF : 0x33888888;
-
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
-		int left = width - 3 - textRenderer.getWidth(this.text.substring(selectionStart)) / 2;
+		int left = (int) (width - 3 - textRenderer.getWidth(this.text.substring(selectionStart)) * parent.getScale());
+		float y1 = y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F);
 
 		if (selectionStart != selectionEnd) {
-			int right = width - 3 - textRenderer.getWidth(this.text.substring(selectionEnd)) / 2;
-			fill(matrices, left, 5 + y, right, 3 + y + textRenderer.fontHeight, 0xF002288, 0.5F);
+			int right = (int) (width - 3 - textRenderer.getWidth(this.text.substring(selectionEnd)) * parent.getScale());
+			fill(matrices, left, y1, right, y1 + 2 + textRenderer.fontHeight * parent.getScale(), 0xF002288, 0.5F);
 		} else if (this.isFocused()) {
 			if (this.focusedTicks / 6 % 2 == 0) {
 				matrices.push();
 				matrices.scale(0.5F, 1F, 1F);
-				fill(matrices, left * 2 - 1, 5 + y, left * 2, 2 + y + textRenderer.fontHeight, 0xFFFFFFFF, 1F);
+				fill(matrices, left * 2 - 1, y1, left * 2, y1 + 2 + textRenderer.fontHeight * parent.getScale(), 0xFFFFFFFF, 1F);
 				matrices.pop();
 			}
 		}
 
-		renderValue(matrices, textRenderer, text, width - 3 - textRenderer.getWidth(text) / 2, 4 + y, 0xFFFFFFFF, 0.5F);
+		renderValue(matrices, textRenderer, text, (int) (width - 3 - textRenderer.getWidth(text) * parent.getScale()), (int) y1, 0xFFFFFFFF, parent.getScale());
 	}
 
 	protected void renderValue(MatrixStack matrices, TextRenderer textRenderer, String text, int x, int y, int color, float scale) {

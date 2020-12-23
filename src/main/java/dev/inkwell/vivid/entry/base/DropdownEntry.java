@@ -34,12 +34,12 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
-		float x1 = width / 2F, x2 = width;
+		float x1 = width / 2F;
 
 		if (!this.isShaded()) {
 			MutableText text = this.valueOf(this.getValue());
-			fill(matrices, x1, y, x2, y + getHeight(), 0xFFFFFFFF, 0.25F);
-			drawCenteredText(matrices, textRenderer, text.styled(style -> style.withUnderline(true)), width * 0.75F, y + getHeight() * 0.24F, 0xFFFFFFFF, 0.5F);
+			fill(matrices, x1, y, (float) width, y + getHeight(), 0xFFFFFFFF, 0.25F);
+			drawCenteredText(matrices, textRenderer, text.styled(style -> style.withUnderline(true)), width * 0.75F, y + getHeight() * 0.24F, 0xFFFFFFFF, parent.getScale());
 		}
 
 		int j = 0;
@@ -50,7 +50,7 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 
 
 			if (VividConfig.Animation.enabled) {
-				if (mouseY >= y1 && mouseY <= y2 && mouseX >= x1 && mouseX <= x2) {
+				if (mouseY >= y1 && mouseY <= y2 && mouseX >= x1 && mouseX <= (float) width) {
 					hoverOpacities[j] = Math.min(1F, VividConfig.Animation.speed + hoverOpacities[j]);
 				} else {
 					hoverOpacities[j] = Math.max(0F, hoverOpacities[j] - VividConfig.Animation.speed);
@@ -61,9 +61,9 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 				float alpha = j % 2 == 0 ? 0.125F : 0.25F;
 
 				MutableText text = this.valueOf(value);
-				fill(matrices, x1, y1, x2, y2, 0xFFFFFFFF, alpha);
-				fill(matrices, x1, y1, x2, y2, 0xFFFFFFFF, hoverOpacities[j] * 0.75F);
-				drawCenteredText(matrices, textRenderer, text, width * 0.75F, y1 + getHeight() / 4F, 0xFFFFFFFF, 0.5F);
+				fill(matrices, x1, y1, (float) width, y2, 0xFFFFFFFF, alpha);
+				fill(matrices, x1, y1, (float) width, y2, 0xFFFFFFFF, hoverOpacities[j] * 0.75F);
+				drawCenteredText(matrices, textRenderer, text, width * 0.75F, y1 + getHeight() / 4F, 0xFFFFFFFF, parent.getScale());
 			}
 
 			j++;
@@ -95,7 +95,7 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 
 			if (inBounds) {
 				int i = (int) ((mouseY - this.y) / this.getHeight());
-				this.setValue((T) possibleValues[i]);
+				this.setValue(possibleValues[i]);
 
 				this.setShade(false);
 

@@ -44,7 +44,7 @@ public abstract class ValueEntry<T> extends ListEntry {
 
 	@Override
 	public int getHeight() {
-		return 15;
+		return (int) (30 * parent.getScale());
 	}
 
 	public final ValueEntry<T> setSaveListener(Consumer<T> listener) {

@@ -32,7 +32,7 @@ public class DoubleEntry extends TextEntry<Double> implements Bounded<Double> {
 				matrices,
 				textRenderer,
 				text.isEmpty() ? "0" : text,
-				text.isEmpty() ? x - textRenderer.getWidth("0") / 2 : x,
+				text.isEmpty() ? (int) (x - textRenderer.getWidth("0") * parent.getScale()) : x,
 				y,
 				color,
 				scale);

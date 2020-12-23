@@ -5,12 +5,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CategoryButtonWidget extends ButtonWidget implements DrawableExtensions {
@@ -36,7 +34,7 @@ public class CategoryButtonWidget extends ButtonWidget implements DrawableExtens
 				: 0xFFFFFFFF;
 
 		MutableText text = this.getMessage().copy().styled(style -> textStyle);
-		drawCenteredText(matrices, textRenderer, text, this.x + this.width / 2F, this.y + (this.height - 8) / 2F, color, 0.5F);
+		drawCenteredText(matrices, textRenderer, text, this.x + this.width / 2F, this.y + (this.height - 8) / 2F, color, parent.getScale());
 
 		matrices.push();
 		this.parent.getStyle().renderCategoryButtonDecorations(this, matrices, x, y, width, height);

@@ -50,7 +50,7 @@ public class IntegerEntry extends TextEntry<Integer> implements Bounded<Integer>
 				matrices,
 				textRenderer,
 				text.isEmpty() ? "0" : text,
-				text.isEmpty() ? x - textRenderer.getWidth("0") / 2 : x,
+				text.isEmpty() ? (int) (x - textRenderer.getWidth("0") * parent.getScale()) : x,
 				y,
 				color,
 				scale);

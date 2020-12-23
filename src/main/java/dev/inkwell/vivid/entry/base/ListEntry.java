@@ -5,6 +5,7 @@ import dev.inkwell.vivid.VividConfig;
 import dev.inkwell.vivid.constraints.Constraint;
 import dev.inkwell.vivid.screen.ConfigScreen;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.util.math.MatrixStack;
@@ -81,7 +82,8 @@ public abstract class ListEntry implements Element, DrawableExtensions {
 		DrawableHelper.fill(matrices, width / 2, y, width, y + getHeight(), color2);
 
 		renderHighlight(matrices, width, y, 0xFFFFFFFF);
-		this.draw(matrices, MinecraftClient.getInstance().textRenderer, this.getName(), 3, 4 + y, 0xFFFFFFFF, 0.5F);
+		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+		this.draw(matrices, textRenderer, this.getName(), 3, y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F), 0xFFFFFFFF, parent.getScale());
 	}
 
 	protected void renderHighlight(MatrixStack matrices, int width, int y, int color) {

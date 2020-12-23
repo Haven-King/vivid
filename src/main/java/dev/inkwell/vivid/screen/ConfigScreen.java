@@ -3,9 +3,9 @@ package dev.inkwell.vivid.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.inkwell.vivid.DrawableExtensions;
 import dev.inkwell.vivid.constraints.Constraint;
+import dev.inkwell.vivid.entry.base.ListEntry;
 import dev.inkwell.vivid.entry.base.ValueEntry;
 import dev.inkwell.vivid.util.Group;
-import dev.inkwell.vivid.entry.base.ListEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
@@ -20,7 +20,6 @@ import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static dev.inkwell.vivid.Vivid.BLUR;
@@ -40,6 +39,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	private int headerSize;
 	private int visibleHeight;
 	private float margin;
+	private float scale;
 
 	private double clickedX;
 	private float lastTickDelta;
@@ -77,11 +77,20 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	public void init(MinecraftClient client, int width, int height) {
 		super.init(client, width, height);
 
+		headerSize = client.textRenderer.fontHeight * 3;
+		contentWidth = height > width ? (width - 12) : width / 2;
+		visibleHeight = this.height - headerSize;
+		margin = height > width ? 6 : width / 4F;
+
+		double test = client.getWindow().getScaleFactor();
+
+		scale = (float) (2F / test);
+
 		for (int i = 0; i < categories.size(); ++i) {
 			int categoryId = i;
 			ButtonWidget button = new CategoryButtonWidget(
 					this,
-					(width - categoryWidth * categories.size()) / 2 + categoryWidth * i,
+					(int) (margin + i * (contentWidth / categories.size()) + (contentWidth / (categories.size() * 2)) - categoryWidth / 2),
 					0,
 					categoryWidth,
 					12,
@@ -100,20 +109,12 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 			this.addButton(button);
 		}
-
-		headerSize = client.textRenderer.fontHeight * 3;
-		contentWidth = height > width ? (width - 6) : width / 2;
-		visibleHeight = this.height - headerSize;
-		margin = height > width ? 0 : width / 4F;
-
 	}
 
 	@Override
 	public void renderBackground(MatrixStack matrices) {
 		this.style.renderBackgroundFromPresets(this, this.parent, matrices, lastTickDelta);
 	}
-
-
 
 	@Override
 	public void resize(MinecraftClient client, int width, int height) {
@@ -136,10 +137,10 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 		if (contentHeight > visibleHeight) {
 			float ratio = visibleHeight / (float) contentHeight;
-			int startX = height > width ? contentWidth + 2 : (int) (margin * 3 + 2);
+			int startX = height > width ? (int) (contentWidth + margin + 2) : (int) (margin * 3 + 2);
 			int startY = (int) (this.headerSize - scrollAmount * ratio) + 10;
 			int height = (int) (ratio * visibleHeight) - this.headerSize;
-			boolean hovered = mouseX >= startX && mouseY >= startY && mouseX <= startX + width && mouseY <= startY + height;
+			boolean hovered = mouseX >= startX && mouseY >= startY && mouseX <= startX + 3 && mouseY <= startY + height;
 			this.style.renderScrollbar(matrices, startX, startY, 3, height, false, hovered);
 		}
 
@@ -170,7 +171,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 		for (int i = 0; i < sections.size(); ++i) {
 			Group<ListEntry> section = sections.get(i);
-			this.draw(matrices, this.textRenderer, section.getName(), 0, y + scrollAmount, sectionColor, 0.5F);
+			this.draw(matrices, this.textRenderer, section.getName(), 0, y + scrollAmount, sectionColor, scale);
 
 			if (mouseX >= margin && mouseX <= margin + this.contentWidth / 2F && mouseY >= y + scrollAmount && mouseY <= y + scrollAmount + 10) {
 				this.addTooltips(section.getTooltips());
@@ -256,12 +257,15 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-		if (clickedX > (margin) * 3 + 2 && clickedX < margin * 3 + 5) {
+		boolean bl = height > width
+				? clickedX > margin + contentWidth + 3
+				: clickedX > (margin) * 3 + 2 && clickedX < margin * 3 + 5;
+		if (bl) {
 			return mouseScrolled(mouseX, mouseY, -deltaY);
 		} else {
 			for (Group<ListEntry> section : categories.get(activeCategory)) {
 				for (ListEntry entry : section) {
-					if (entry.mouseDragged(mouseX - width / 4F, mouseY, button, deltaX, deltaY)) {
+					if (entry.mouseDragged(mouseX - margin, mouseY, button, deltaX, deltaY)) {
 						return true;
 					}
 				}
@@ -285,22 +289,22 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 				}
 			}
 		} else {
-			if (getFocused() == null || !getFocused().isMouseOver(mouseX - width / 4F, mouseY)) {
+			if (getFocused() == null || !getFocused().isMouseOver(mouseX - margin, mouseY)) {
 				for (Group<ListEntry> section : categories.get(activeCategory)) {
 					for (ListEntry entry : section) {
 						if (entry.holdsFocus()) {
-							entry.setFocused(entry.isMouseOver(mouseX - width / 4F, mouseY));
+							entry.setFocused(entry.isMouseOver(mouseX - margin, mouseY));
 
 							if (entry.isFocused()) {
 								this.setFocused(entry);
 							}
 						}
 
-						bl = bl || entry.mouseClicked(mouseX - width / 4F, mouseY, button);
+						bl = bl || entry.mouseClicked(mouseX - margin, mouseY, button);
 					}
 				}
 			} else {
-				bl = getFocused().mouseClicked(mouseX - width / 4F, mouseY, button);
+				bl = getFocused().mouseClicked(mouseX - margin, mouseY, button);
 			}
 		}
 
@@ -359,27 +363,27 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			}
 
 			float k = x - (i / 4F);
-			float l = y - 10 - ((textRenderer.fontHeight * lines.size()) / 2F);
+			float l = y - 10 - (textRenderer.fontHeight * lines.size() * scale);
 			int n = 8;
 			if (lines.size() > 1) {
 				n += 2 + (lines.size() - 1) * 10;
 			}
 
-			k /= 2;
-			l /= 2;
+			k *= scale;
+			l *= scale;
 
 			if (l + n + 6 > this.height) {
 				l = this.height - n - 6;
 			}
 
-			k *= 2;
-			l *= 2;
+			k /= scale;
+			l /= scale;
 
 			matrices.translate(-k, -l, 0);
-			matrices.scale(0.5F, 0.5F, 0);
+			matrices.scale(scale, scale, 0);
 
-			k *= 2;
-			l *= 2;
+			k /= scale;
+			l /= scale;
 
 			matrices.translate(k, l, 0);
 
@@ -387,30 +391,30 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 			int offset = 10;
 
-			float startX = (k - offset) / (this.width * 2);
-			float startY = 1F - (l + n + offset) / (this.height * 2);
-			float endX = (k + i + offset) / (this.width * 2);
-			float endY = 1F - (l - offset) / (this.height * 2);
+			float startX = (k - offset) / (this.width / this.scale);
+			float startY = 1F - (l + n + offset) / (this.height / this.scale);
+			float endX = (k + i + offset) / (this.width / this.scale);
+			float endY = 1F - (l - offset) / (this.height / this.scale);
 
 			if (l - offset < 0) {
 				float dY = n + offset + this.textRenderer.fontHeight * 3;
 				matrices.translate(0, dY, 0);
-				startY -= (dY / this.height) / 2;
-				endY -= (dY / this.height) / 2;
+				startY -= (dY / this.height) * scale;
+				endY -= (dY / this.height) * scale;
 			}
 
 			if (k - offset < 0) {
 				float dX = 3 - (k - offset);
 				matrices.translate(dX, 0, 0);
-				startX += (dX / this.width) / 2;
-				endX += (dX / this.width) / 2;
+				startX += (dX / this.width) * scale;
+				endX += (dX / this.width) * scale;
 			}
 
-			if (k + i + offset > (this.width * 2)) {
-				float dX = -(k + i + offset - (this.width * 2F)) - 3;
+			if (k + i + offset > (this.width / scale)) {
+				float dX = -(k + i + offset - (this.width / scale)) - 3;
 				matrices.translate(dX, 0, 0);
-				startX += (dX / this.width) / 2;
-				endX += (dX / this.width) / 2;
+				startX += (dX / this.width) * scale;
+				endX += (dX / this.width) * scale;
 			}
 
 			BLUR.setUniformValue("Progress", 1F);
@@ -458,5 +462,9 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			immediate.draw();
 			matrices.pop();
 		}
+	}
+
+	public float getScale() {
+		return this.scale;
 	}
 }

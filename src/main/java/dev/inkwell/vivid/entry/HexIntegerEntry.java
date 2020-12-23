@@ -25,7 +25,7 @@ public class HexIntegerEntry extends TextEntry<Integer> {
 
 		String paddedZeroes = builder.toString();
 
-		draw(matrices, textRenderer, paddedZeroes, x - (textRenderer.getWidth(paddedZeroes) / 2), y, this.getValue(), 0.5F);
+		draw(matrices, textRenderer, paddedZeroes, x - (textRenderer.getWidth(paddedZeroes) / 2), y, this.getValue(), parent.getScale());
 	}
 
 	@Override
@@ -41,9 +41,7 @@ public class HexIntegerEntry extends TextEntry<Integer> {
 	@Override
 	public void init(ConfigScreen parent) {
 		super.init(parent);
-		this.setPredicate(string -> {
-			return string.matches("^[0-9A-Fa-f]*$") && string.length() <= 8;
-		});
+		this.setPredicate(string -> string.matches("^[0-9A-Fa-f]*$") && string.length() <= 8);
 	}
 
 	@Override

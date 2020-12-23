@@ -114,19 +114,23 @@ public class VividConfig implements ModMenuApi {
 						return entry;
 					});
 
-					section.add(new TranslatableText(sectionName + ".element" + k), () -> "Red", () -> "Green", (name, defaultValue, value) -> {
+					section.add(new TranslatableText(sectionName + ".element" + k++), () -> "Red", () -> "Green", (name, defaultValue, value) -> {
 						StringDropdown entry = new StringDropdown(name, defaultValue, value);
 						entry.setPossibleValues(new String[] {"Red", "Green", "Blue", "Black"});
 
 						return entry;
 					});
 
-					section.add(new TranslatableText(sectionName + ".element" + k), () -> 0D, () -> random.nextDouble() * 100D, (name, defaultValue, value) -> {
+					section.add(new TranslatableText(sectionName + ".element" + k++), () -> 0D, () -> random.nextDouble() * 100D, (name, defaultValue, value) -> {
 						DoubleSlider entry = new DoubleSlider(name, defaultValue, value);
 						entry.setBounds(0D, 100D);
 
 						return entry;
 					});
+
+					section.add(new TranslatableText(sectionName + ".element" + k++), name -> new ExternalButtonEntry(name, (parent) -> {}));
+					section.add(new TranslatableText(sectionName + ".element" + k++), name -> new ExternalButtonEntry(name, (parent) -> {}));
+					section.add(new TranslatableText(sectionName + ".element" + k), name -> new ExternalButtonEntry(name, (parent) -> {}));
 				}
 			}
 		}
