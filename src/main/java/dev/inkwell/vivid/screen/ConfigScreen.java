@@ -171,13 +171,16 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 		for (int i = 0; i < sections.size(); ++i) {
 			Group<ListEntry> section = sections.get(i);
-			this.draw(matrices, this.textRenderer, section.getName(), 0, y + scrollAmount, sectionColor, scale);
 
-			if (mouseX >= margin && mouseX <= margin + this.contentWidth / 2F && mouseY >= y + scrollAmount && mouseY <= y + scrollAmount + 10) {
-				this.addTooltips(section.getTooltips());
+			if (!section.getName().asString().isEmpty()) {
+				this.draw(matrices, this.textRenderer, section.getName(), 0, y + scrollAmount, sectionColor, scale);
+
+				if (mouseX >= margin && mouseX <= margin + this.contentWidth / 2F && mouseY >= y + scrollAmount && mouseY <= y + scrollAmount + 10) {
+					this.addTooltips(section.getTooltips());
+				}
+
+				y += 10;
 			}
-
-			y += 10;
 
 			for (int j = 0; j < section.size(); ++j) {
 				ListEntry entry = section.get(j);
