@@ -17,7 +17,7 @@ public class DoubleEntry extends TextEntry<Double> implements Bounded<Double> {
 	private Double min = null;
 	private Double max = null;
 
-	public DoubleEntry(MutableText name, Supplier<Double> defaultValue, Double value) {
+	public DoubleEntry(MutableText name, Supplier<?> defaultValue, Object value) {
 		super(name, defaultValue, value);
 	}
 

@@ -52,5 +52,9 @@ public abstract class ValueEntry<T> extends ListEntry {
 		return this;
 	}
 
+	public String getDefaultValueAsString() {
+		return this.defaultValue.get().toString();
+	}
+
 	public abstract boolean hasError();
 }

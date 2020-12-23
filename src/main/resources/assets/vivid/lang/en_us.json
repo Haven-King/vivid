@@ -3,5 +3,6 @@
   "vivid.constraint.max": "Max %d",
   "vivid.constraint.matches": "Matches %s",
   "vivid.enabled.true": "On",
-  "vivid.enabled.false": "Off"
+  "vivid.enabled.false": "Off",
+  "vivid.default": "Default: %s"
 }

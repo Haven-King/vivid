@@ -20,12 +20,12 @@ public class SectionBuilder extends Group<Object> {
 		return this;
 	}
 
-	public <T> SectionBuilder add(MutableText name, Supplier<T> defaultValue, Supplier<T> value, ValueEntryBuilder<T> valueEntryBuilder) {
+	public <T> SectionBuilder addConfigEntry(MutableText name, Supplier defaultValue, Supplier value, ValueEntryBuilder valueEntryBuilder) {
 		this.add(new ValueBuilder<>(name, defaultValue, value, valueEntryBuilder));
 		return this;
 	}
 
-	public SectionBuilder add(MutableText name, ListEntryBuilder entryBuilder) {
+	public SectionBuilder addListEntry(MutableText name, ListEntryBuilder entryBuilder) {
 		this.add(new ListBuilder(name, entryBuilder));
 		return this;
 	}

@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class HexIntegerEntry extends TextEntry<Integer> {
-	public HexIntegerEntry(MutableText name, Supplier<Integer> defaultValue, Integer value) {
+	public HexIntegerEntry(MutableText name, Supplier<?> defaultValue, Object value) {
 		super(name, defaultValue, value);
 	}
 

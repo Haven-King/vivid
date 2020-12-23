@@ -131,6 +131,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 		this.lastTickDelta = tickDelta;
 		this.renderBackground(matrices);
+		this.style.renderDecorations(matrices, mouseX, mouseY, tickDelta, this.width, this.height, this.headerSize);
 
 		int contentHeight = lastY - headerSize;
 
@@ -142,13 +143,11 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		if (contentHeight > visibleHeight) {
 			float ratio = visibleHeight / (float) contentHeight;
 			int startX = height > width ? (int) (contentWidth + margin + 2) : (int) (margin * 3 + 2);
-			int startY = (int) (this.headerSize - scrollAmount * ratio) + (sections.get(0).getName().asString().isEmpty() ? 0 : 10);
+			int startY = (int) (this.headerSize - scrollAmount * ratio) + (sections.get(0).getName().getString().isEmpty() ? 0 : 10);
 			int height = (int) (ratio * visibleHeight) - this.headerSize;
 			boolean hovered = mouseX >= startX && mouseY >= startY && mouseX <= startX + 3 && mouseY <= startY + height;
 			this.style.renderScrollbar(matrices, startX, startY, 3, height, false, hovered);
 		}
-
-		this.style.renderDecorations(matrices, mouseX, mouseY, tickDelta, this.width, this.height);
 
 		super.render(matrices, mouseX, mouseY, tickDelta);
 
@@ -172,7 +171,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		for (int i = 0; i < sections.size(); ++i) {
 			Group<ListEntry> section = sections.get(i);
 
-			if (!section.getName().asString().isEmpty()) {
+			if (!section.getName().getString().isEmpty()) {
 				this.draw(matrices, this.textRenderer, section.getName(), 0, y + scrollAmount, sectionColor, scale);
 
 				if (mouseX >= margin && mouseX <= margin + this.contentWidth / 2F && mouseY >= y + scrollAmount && mouseY <= y + scrollAmount + 10) {

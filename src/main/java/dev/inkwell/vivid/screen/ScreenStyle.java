@@ -83,11 +83,11 @@ public class ScreenStyle extends DrawableHelper implements DrawableExtensions {
 		}
 	}
 
-	public void renderDecorations(MatrixStack matrices, int mouseX, int mouseY, float delta, int width, int height) {
-		fillGradient(matrices, 0, 0, width, height / 8, 0x88000000 | (gradientColor & 0x00FFFFFF), (gradientColor & 0x00FFFFFF));
-		fillGradient(matrices, 0, height - height / 8, width, height, (gradientColor & 0x00FFFFFF), 0x88000000 | (gradientColor & 0x00FFFFFF));
+	public void renderDecorations(MatrixStack matrices, int mouseX, int mouseY, float delta, int screenWidth, int screenHeight, int headerHeight) {
+		fillGradient(matrices, 0, 0, screenWidth, screenHeight / 8, 0x88000000 | (gradientColor & 0x00FFFFFF), (gradientColor & 0x00FFFFFF));
+		fillGradient(matrices, 0, screenHeight - screenHeight / 8, screenWidth, screenHeight, (gradientColor & 0x00FFFFFF), 0x88000000 | (gradientColor & 0x00FFFFFF));
 
-		line(matrices, 0, width, 12.125F, 12.125F, 0x88000000 | (accentColor & 0x00FFFFFF));
+		line(matrices, 0, screenWidth, headerHeight / 2F, headerHeight / 2F, 0x88000000 | (accentColor & 0x00FFFFFF));
 	}
 
 	public interface FromOrdinal<T> {

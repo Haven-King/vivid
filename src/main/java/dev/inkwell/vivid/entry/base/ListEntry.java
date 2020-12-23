@@ -11,6 +11,7 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +108,11 @@ public abstract class ListEntry implements Element, DrawableExtensions {
 
 		if (this instanceof Constraint) {
 			((Constraint) this).addConstraintTooltips(tooltips);
+		}
+
+		if (this instanceof ValueEntry) {
+			ValueEntry<?> valueEntry = (ValueEntry<?>) this;
+			tooltips.add(new TranslatableText("vivid.default", valueEntry.getDefaultValueAsString()));
 		}
 	}
 }

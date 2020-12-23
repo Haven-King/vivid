@@ -16,7 +16,7 @@ public class LongEntry extends TextEntry<Long> implements Bounded<Long> {
 	private Long min = null;
 	private Long max = null;
 
-	public LongEntry(MutableText name, Supplier<Long> defaultValue, Long value) {
+	public LongEntry(MutableText name, Supplier<?> defaultValue, Object value) {
 		super(name, defaultValue, value);
 	}
 

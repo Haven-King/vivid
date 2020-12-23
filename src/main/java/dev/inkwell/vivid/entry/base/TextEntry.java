@@ -92,6 +92,11 @@ public abstract class TextEntry<T> extends ValueEntry<T> implements TickableElem
 
 	protected abstract T emptyValue();
 
+	@Override
+	public String getDefaultValueAsString() {
+		return this.valueOf(this.defaultValue.get());
+	}
+
 	public void setSelectionStart(int cursor) {
 		this.selectionStart = MathHelper.clamp(cursor, 0, this.text.length());
 	}
