@@ -50,11 +50,11 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 			int y2 = y + (j + 1) * this.getHeight();
 
 
-			if (VividConfig.Animation.enabled) {
+			if (VividConfig.Animation.ENABLED) {
 				if (mouseY >= y1 && mouseY <= y2 && mouseX >= x1 && mouseX <= (float) width) {
-					hoverOpacities[j] = Math.min(1F, VividConfig.Animation.speed + hoverOpacities[j]);
+					hoverOpacities[j] = Math.min(1F, VividConfig.Animation.SPEED + hoverOpacities[j]);
 				} else {
-					hoverOpacities[j] = Math.max(0F, hoverOpacities[j] - VividConfig.Animation.speed);
+					hoverOpacities[j] = Math.max(0F, hoverOpacities[j] - VividConfig.Animation.SPEED);
 				}
 			}
 

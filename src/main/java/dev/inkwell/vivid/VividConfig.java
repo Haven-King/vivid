@@ -16,31 +16,37 @@ import io.github.prospector.modmenu.api.ModMenuApi;
 import net.fabricmc.fabric.api.util.TriState;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 
 import java.util.Random;
 
 public class VividConfig implements ModMenuApi {
 	public static class Animation {
-		public static boolean enabled = true;
-		public static float speed = 0.2F;
+		public static boolean ENABLED = true;
+		public static float SPEED = 0.2F;
 	}
+
+	public static final ScreenStyle STYLE = new ScreenStyle() {{
+		this.backgroundTexture = new Identifier("textures/block/cobblestone.png");
+		this.backgroundColor = 0xBB404040;
+	}};
 
 	private final ConfigScreenBuilder builder;
 
 	public VividConfig() {
-		builder = new ConfigScreenBuilder().withStyle(ScreenStyle.NETHER);
+		builder = new ConfigScreenBuilder().withStyle(STYLE);
 
 		CategoryBuilder config = builder.startCategory(new TranslatableText("vivid.config"));
 
 		SectionBuilder animation = config.addSection(new TranslatableText("vivid.config.animation"));
-		animation.addConfigEntry(new TranslatableText("vivid.config.animation.enabled"), () -> true, () -> true, b -> Animation.enabled = (boolean) b, (name, defaultValue, consumer, value) -> {
+		animation.addConfigEntry(new TranslatableText("vivid.config.animation.enabled"), () -> true, () -> Animation.ENABLED, b -> Animation.ENABLED = (boolean) b, (name, defaultValue, consumer, value) -> {
 			BooleanEntry entry = new BooleanEntry(name, defaultValue, consumer, value);
 			entry.setSaveListener(consumer);
 			return entry;
 		});
 
-		animation.addConfigEntry(new TranslatableText("vivid.config.animation.speed"), () -> 0.2F, () -> 0.2F, f -> Animation.speed = (float) f, (name, defaultValue, consumer, value) -> {
+		animation.addConfigEntry(new TranslatableText("vivid.config.animation.speed"), () -> 0.2F, () -> Animation.SPEED, f -> Animation.SPEED = (float) f, (name, defaultValue, consumer, value) -> {
 			FloatEntry entry = new FloatEntry(name, defaultValue, consumer, value);
 			entry.setSaveListener(consumer);
 			entry.setBounds(0.01F, 2F);

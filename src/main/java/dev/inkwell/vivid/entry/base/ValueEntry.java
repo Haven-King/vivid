@@ -11,12 +11,14 @@ public abstract class ValueEntry<T> extends ListEntry {
 	private Consumer<T> changedListener = t -> {};
 	private Consumer<T> saveConsumer;
 
+	private final T initialValue;
 	private T value;
 
 	@SuppressWarnings("unchecked")
 	public ValueEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
 		super(name);
 		this.defaultValue = (Supplier<T>) defaultValue;
+		this.initialValue = (T) value;
 		this.value = (T) value;
 		this.saveConsumer = (Consumer<T>) saveConsumer;
 	}
@@ -61,6 +63,10 @@ public abstract class ValueEntry<T> extends ListEntry {
 
 	public final void save() {
 		this.saveConsumer.accept(this.getValue());
+	}
+
+	public boolean hasChanged() {
+		return !this.initialValue.equals(this.value);
 	}
 
 	public String getDefaultValueAsString() {

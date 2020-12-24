@@ -10,13 +10,16 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TickableElement;
+import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.Matrix4f;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -30,6 +33,8 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	private final List<Group<Group<ListEntry>>> categories;
 	private final int categoryWidth;
 
+	private boolean isSaveDialogOpen = false;
+
 	private ScreenStyle style = ScreenStyle.DEFAULT;
 
 	private int activeCategory = 0;
@@ -40,6 +45,9 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	private int visibleHeight;
 	private float margin;
 	private float scale;
+
+	private int lastMouseX;
+	private int lastMouseY;
 
 	private double clickedX;
 	private float lastTickDelta;
@@ -52,6 +60,9 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	// TODO: Better error hoisting?
 	@SuppressWarnings({"FieldCanBeLocal", "unused"})
 	private boolean hasError = false;
+
+	private AbstractButtonWidget yesButton;
+	private AbstractButtonWidget noButton;
 
 	public ConfigScreen(Screen parent, List<Group<Group<ListEntry>>> categories) {
 		super(categories.get(0).getName());
@@ -85,6 +96,43 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		double test = client.getWindow().getScaleFactor();
 
 		scale = (float) (2F / test);
+
+		int padding = 3;
+		int buttonWidth = 45;
+		int buttonHeight = 15;
+
+		yesButton = new FancyButton(this,
+				width / 2 - buttonWidth - padding,
+				height / 2,
+				buttonWidth,
+				buttonHeight,
+				new TranslatableText("gui.yes"),
+				button -> {
+					for (Group<ListEntry> section : categories.get(activeCategory)) {
+						for (ListEntry entry : section) {
+							if (entry instanceof ValueEntry && ((ValueEntry<?>) entry).hasChanged()) {
+								((ValueEntry<?>) entry).save();
+							}
+						}
+					}
+
+					this.onClose();
+				}
+		);
+
+		noButton = new FancyButton(this,
+				width / 2 + padding,
+				height / 2,
+				buttonWidth,
+				buttonHeight,
+				new TranslatableText("gui.no"),
+				button -> {
+					this.onClose();
+				}
+		);
+
+		yesButton.visible = false;
+		noButton.visible = false;
 
 		for (int i = 0; i < categories.size(); ++i) {
 			int categoryId = i;
@@ -129,9 +177,20 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	public void render(MatrixStack matrices, int mouseX, int mouseY, float tickDelta) {
 		if (this.client == null) return;
 
+		int useMouseX;
+		int useMouseY;
+
+		if (this.isSaveDialogOpen) {
+			useMouseX = lastMouseX;
+			useMouseY = lastMouseY;
+		} else {
+			useMouseX = mouseX;
+			useMouseY = mouseY;
+		}
+
 		this.lastTickDelta = tickDelta;
 		this.renderBackground(matrices);
-		this.style.renderDecorations(matrices, mouseX, mouseY, tickDelta, this.width, this.height, this.headerSize);
+		this.style.renderDecorations(matrices, useMouseX, useMouseY, tickDelta, this.width, this.height, this.headerSize);
 
 		int contentHeight = lastY - headerSize;
 
@@ -145,11 +204,11 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			int startX = height > width ? (int) (contentWidth + margin + 2) : (int) (margin * 3 + 2);
 			int startY = (int) (this.headerSize - scrollAmount * ratio) + (sections.get(0).getName().getString().isEmpty() ? 0 : 10);
 			int height = (int) (ratio * visibleHeight) - this.headerSize;
-			boolean hovered = mouseX >= startX && mouseY >= startY && mouseX <= startX + 3 && mouseY <= startY + height;
+			boolean hovered = useMouseX >= startX && useMouseY >= startY && useMouseX <= startX + 3 && useMouseY <= startY + height;
 			this.style.renderScrollbar(matrices, startX, startY, 3, height, false, hovered);
 		}
 
-		super.render(matrices, mouseX, mouseY, tickDelta);
+		super.render(matrices, useMouseX, useMouseY, tickDelta);
 
 
 		matrices.push();
@@ -174,7 +233,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			if (!section.getName().getString().isEmpty()) {
 				this.draw(matrices, this.textRenderer, section.getName(), 0, y + scrollAmount, sectionColor, scale);
 
-				if (mouseX >= margin && mouseX <= margin + this.contentWidth / 2F && mouseY >= y + scrollAmount && mouseY <= y + scrollAmount + 10) {
+				if (useMouseX >= margin && useMouseX <= margin + this.contentWidth / 2F && useMouseY >= y + scrollAmount && useMouseY <= y + scrollAmount + 10) {
 					this.addTooltips(section.getTooltips());
 				}
 
@@ -188,10 +247,10 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 					focusedJ = j;
 					focusedY = y + scrollAmount;
 				} else {
-					entry.render(matrices, j, contentWidth, y + scrollAmount, (int) (mouseX - margin), mouseY, tickDelta);
+					entry.render(matrices, j, contentWidth, y + scrollAmount, (int) (useMouseX - margin), useMouseY, tickDelta);
 				}
 
-				if (mouseY > this.headerSize && entry.isMouseOver(mouseX - margin, mouseY) && (entry == this.getFocused() || this.getFocused() == null)) {
+				if (useMouseY > this.headerSize && entry.isMouseOver(useMouseX - margin, useMouseY) && (entry == this.getFocused() || this.getFocused() == null)) {
 					entry.addTooltipsToList(tooltips);
 					this.hovered = entry;
 				}
@@ -209,7 +268,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
 		if (this.getFocused() instanceof ListEntry) {
-			((ListEntry) this.getFocused()).render(matrices, focusedJ, contentWidth, focusedY, (int) (mouseX - margin), mouseY, tickDelta);
+			((ListEntry) this.getFocused()).render(matrices, focusedJ, contentWidth, focusedY, (int) (useMouseX - margin), useMouseY, tickDelta);
 		}
 
 		matrices.pop();
@@ -217,8 +276,31 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		lastY = y - this.headerSize;
 
 		if (!tooltips.isEmpty()) {
-			this.renderTooltip(matrices, tooltips, mouseX, mouseY);
+			this.renderTooltip(matrices, tooltips, useMouseX, useMouseY);
 			tooltips.clear();
+		}
+
+		if (this.isSaveDialogOpen) {
+			fill(matrices, 0, 0, width, height, 0x80000000);
+			BLUR.setUniformValue("Progress", 1F);
+			BLUR.setUniformValue("Radius", 4F);
+			BLUR.setUniformValue("Start", 0F, 0F);
+			BLUR.setUniformValue("End", 1F, 1F);
+			BLUR.render(1F);
+
+			int padding = 3;
+			int buttonWidth = 45;
+			int buttonHeight = 20;
+
+			int changedCount = this.changedCount();
+			drawCenteredText(matrices, textRenderer, new TranslatableText("vivid.unsaved.count." + (changedCount > 1 ? "plural" : "singular"), changedCount), width / 2F, height / 2F - textRenderer.fontHeight / 2F - buttonHeight, 0xFFFFFFFF, 1.25F * scale);
+			drawCenteredText(matrices, textRenderer, new TranslatableText("vivid.unsaved.prompt"), width / 2F, height / 2F - (buttonHeight / 4F) * 3, 0xFFFFFFFF, 1.25F * scale);
+
+			yesButton.render(matrices, mouseX, mouseY, tickDelta);
+			noButton.render(matrices, mouseX, mouseY, tickDelta);
+		} else {
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
 		}
 	}
 
@@ -259,89 +341,149 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-		boolean bl = height > width
-				? clickedX > margin + contentWidth + 3
-				: clickedX > (margin) * 3 + 2 && clickedX < margin * 3 + 5;
-		if (bl) {
-			return mouseScrolled(mouseX, mouseY, -deltaY);
+		if (this.isSaveDialogOpen) {
+			return false;
 		} else {
-			for (Group<ListEntry> section : categories.get(activeCategory)) {
-				for (ListEntry entry : section) {
-					if (entry.mouseDragged(mouseX - margin, mouseY, button, deltaX, deltaY)) {
-						return true;
+			boolean bl = height > width
+					? clickedX > margin + contentWidth + 3
+					: clickedX > (margin) * 3 + 2 && clickedX < margin * 3 + 5;
+			if (bl) {
+				return mouseScrolled(mouseX, mouseY, -deltaY);
+			} else {
+				for (Group<ListEntry> section : categories.get(activeCategory)) {
+					for (ListEntry entry : section) {
+						if (entry.mouseDragged(mouseX - margin, mouseY, button, deltaX, deltaY)) {
+							return true;
+						}
 					}
 				}
 			}
-		}
 
-		return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+			return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+		}
 	}
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		boolean bl = super.mouseClicked(mouseX, mouseY, button);
-		this.setFocused(null);
-
-		clickedX = mouseX;
-
-		if (bl) {
-			for (Group<ListEntry> section : categories.get(activeCategory)) {
-				for (ListEntry entry : section) {
-					entry.setFocused(false);
-				}
+		if (this.isSaveDialogOpen) {
+			if (yesButton.mouseClicked(mouseX, mouseY, button)) {
+				return true;
+			} else if (noButton.mouseClicked(mouseX, mouseY, button)) {
+				this.isSaveDialogOpen = false;
+				yesButton.visible = false;
+				noButton.visible = false;
+				return true;
 			}
+
+			return false;
 		} else {
-			if (getFocused() == null || !getFocused().isMouseOver(mouseX - margin, mouseY)) {
+			boolean bl = super.mouseClicked(mouseX, mouseY, button);
+			this.setFocused(null);
+
+			clickedX = mouseX;
+
+			if (bl) {
 				for (Group<ListEntry> section : categories.get(activeCategory)) {
 					for (ListEntry entry : section) {
-						if (entry.holdsFocus()) {
-							entry.setFocused(entry.isMouseOver(mouseX - margin, mouseY));
-
-							if (entry.isFocused()) {
-								this.setFocused(entry);
-							}
-						}
-
-						bl = bl || entry.mouseClicked(mouseX - margin, mouseY, button);
+						entry.setFocused(false);
 					}
 				}
 			} else {
-				bl = getFocused().mouseClicked(mouseX - margin, mouseY, button);
+				if (getFocused() == null || !getFocused().isMouseOver(mouseX - margin, mouseY)) {
+					for (Group<ListEntry> section : categories.get(activeCategory)) {
+						for (ListEntry entry : section) {
+							if (entry.holdsFocus()) {
+								entry.setFocused(entry.isMouseOver(mouseX - margin, mouseY));
+
+								if (entry.isFocused()) {
+									this.setFocused(entry);
+								}
+							}
+
+							bl = bl || entry.mouseClicked(mouseX - margin, mouseY, button);
+						}
+					}
+				} else {
+					bl = getFocused().mouseClicked(mouseX - margin, mouseY, button);
+				}
 			}
-		}
 
-		if (!bl) {
-			this.setFocused(null);
-		}
+			if (!bl) {
+				this.setFocused(null);
+			}
 
-		return bl;
+			return bl;
+		}
 	}
 
 	@Override
 	public boolean charTyped(char chr, int keyCode) {
-		if (this.getFocused() != null) {
-			return this.getFocused().charTyped(chr, keyCode);
-		}
+		if (this.isSaveDialogOpen) {
+			return false;
+		} else {
+			if (this.getFocused() != null) {
+				return this.getFocused().charTyped(chr, keyCode);
+			}
 
-		return false;
+			return false;
+		}
 	}
 
 	@Override
 	public void tick() {
-		if (this.getFocused() != null && this.getFocused() instanceof TickableElement) {
-			((TickableElement) this.getFocused()).tick();
+		if (this.isSaveDialogOpen) {
+
+		} else {
+			if (this.getFocused() != null && this.getFocused() instanceof TickableElement) {
+				((TickableElement) this.getFocused()).tick();
+			}
 		}
+	}
+
+	private int changedCount() {
+		int changed = 0;
+
+		for (Group<Group<ListEntry>> category : this.categories) {
+			for (Group<ListEntry> section : category) {
+				for (ListEntry entry : section) {
+					if (entry instanceof ValueEntry && ((ValueEntry<?>) entry).hasChanged()) {
+						++changed;
+					}
+				}
+			}
+		}
+
+		return changed;
 	}
 
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		boolean bl = false;
+		if (this.isSaveDialogOpen) {
+			if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+				this.isSaveDialogOpen = false;
+			}
 
-		if (this.getFocused() != null) {
-			bl = this.getFocused().keyPressed(keyCode, scanCode, modifiers);
+			return false;
+		} else {
+			if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+				int changed = this.changedCount();
+
+				if (changed > 0) {
+					this.isSaveDialogOpen = true;
+					yesButton.visible = true;
+					noButton.visible = true;
+					return false;
+				}
+			}
+
+			boolean bl = false;
+
+			if (this.getFocused() != null) {
+				bl = this.getFocused().keyPressed(keyCode, scanCode, modifiers);
+			}
+
+			return bl || super.keyPressed(keyCode, scanCode, modifiers);
 		}
-
-		return bl || super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	public ScreenStyle getStyle() {
@@ -381,6 +523,8 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			k /= scale;
 			l /= scale;
 
+			matrices.push();
+
 			matrices.translate(-k, -l, 0);
 			matrices.scale(scale, scale, 0);
 
@@ -388,8 +532,6 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			l /= scale;
 
 			matrices.translate(k, l, 0);
-
-			matrices.push();
 
 			int offset = 10;
 

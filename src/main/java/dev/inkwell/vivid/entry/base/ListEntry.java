@@ -65,11 +65,11 @@ public abstract class ListEntry implements Element, DrawableExtensions {
 		int color1 = index % 2 == 0 ? 0x44FFFFFF : 0x22888888;
 		int color2 = index % 2 == 0 ? 0x22FFFFFF : 0x11888888;
 
-		if (VividConfig.Animation.enabled) {
+		if (VividConfig.Animation.ENABLED) {
 			if (isMouseOver(mouseX, mouseY) && (this.parent.getFocused() == null || this.parent.getFocused() == this)) {
-				hoverOpacity = Math.min(1F, VividConfig.Animation.speed + hoverOpacity);
+				hoverOpacity = Math.min(1F, VividConfig.Animation.SPEED + hoverOpacity);
 			} else {
-				hoverOpacity = Math.max(0F, hoverOpacity - VividConfig.Animation.speed);
+				hoverOpacity = Math.max(0F, hoverOpacity - VividConfig.Animation.SPEED);
 			}
 		} else {
 			hoverOpacity = this.isMouseOver(mouseX, mouseY) ? 1F : 0F;
