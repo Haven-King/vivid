@@ -1,5 +1,6 @@
 package dev.inkwell.vivid.builders;
 
+import dev.inkwell.vivid.entry.base.EntryType;
 import dev.inkwell.vivid.entry.base.ListEntry;
 import dev.inkwell.vivid.util.Group;
 import dev.inkwell.vivid.util.Quintuple;
@@ -40,7 +41,7 @@ public class SectionBuilder extends Group<Object> {
 			if (group instanceof ValueBuilder) {
 				ValueBuilder<?> valueBuilder = (ValueBuilder<?>) group;
 				section.add(
-						((ValueBuilder<?>) group).getE().build(valueBuilder.getA(), (Supplier<Object>) valueBuilder.getB(), (Consumer<Object>) valueBuilder.getD(), valueBuilder.getC().get())
+						((ValueBuilder<?>) group).getE().build(valueBuilder.getA(), (Supplier<Object>) valueBuilder.getB(), (Consumer<Object>) valueBuilder.getD(), valueBuilder.getC().get(), EntryType.VALUE)
 				);
 			} else if (group instanceof ListBuilder) {
 				section.add(((ListBuilder) group).getRight().build(((ListBuilder) group).getLeft()));

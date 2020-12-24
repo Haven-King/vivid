@@ -10,6 +10,7 @@ import net.minecraft.text.MutableText;
 
 public class ExternalButtonEntry extends ListEntry {
 	private final Action onClick;
+
 	public ExternalButtonEntry(MutableText name, Action onClick) {
 		super(name);
 		this.onClick = onClick;
@@ -21,11 +22,9 @@ public class ExternalButtonEntry extends ListEntry {
 	}
 
 	@Override
-	public void render(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
-		super.render(matrices, index, width, y, mouseX, mouseY, delta);
-
+	public void renderContents(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-		draw(matrices, textRenderer, ">", width - 6, y + (getHeight() - textRenderer.fontHeight) / 2 + 1, 0xFFFFFFFF, 0.5F);
+		draw(matrices, textRenderer, "▶", width - 6, y + (getHeight() - textRenderer.fontHeight) / 2 + 1, 0xFFFFFFFF, 0.5F);
 	}
 
 	@Override

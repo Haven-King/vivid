@@ -1,5 +1,6 @@
 package dev.inkwell.vivid.entry;
 
+import dev.inkwell.vivid.entry.base.EntryType;
 import dev.inkwell.vivid.entry.base.ValueEntry;
 import dev.inkwell.vivid.util.Translatable;
 import net.minecraft.client.MinecraftClient;
@@ -12,21 +13,19 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class EnumSelector<T extends Enum<T>> extends ValueEntry<T> {
-	public EnumSelector(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
-		super(name, defaultValue, saveConsumer, value);
+	public EnumSelector(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value, EntryType entryType) {
+		super(name, defaultValue, saveConsumer, value, entryType);
 	}
 
 	@Override
-	public void render(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
-		super.render(matrices, index, width, y, mouseX, mouseY, delta);
-
+	public void renderContents(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
 		Enum<T>[] enums = this.getValue().getDeclaringClass().getEnumConstants();
-		float segmentSize = (width / 2F) / enums.length;
+		float segmentSize = ((float) width) / enums.length;
 		for (int i = 0; i < enums.length; ++i) {
-			float x1 = width / 2F + segmentSize * i;
-			float x2 = i < enums.length - 1 ? segmentSize * (i + 1) + width / 2F : width;
+			float x1 = segmentSize * i;
+			float x2 = i < enums.length - 1 ? segmentSize * (i + 1) : width;
 
 			boolean b = enums[i] == this.getValue();
 			fill(matrices, x1, y, x2, y + this.getHeight(), 0xFFFFFFFF, b ?  0.25F : 0F);

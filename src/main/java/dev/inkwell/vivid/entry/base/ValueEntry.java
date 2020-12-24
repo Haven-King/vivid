@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 public abstract class ValueEntry<T> extends ListEntry {
 	protected final Supplier<T> defaultValue;
+	protected final EntryType entryType;
 	private Consumer<T> changedListener = t -> {};
 	private Consumer<T> saveConsumer;
 
@@ -15,12 +16,13 @@ public abstract class ValueEntry<T> extends ListEntry {
 	private T value;
 
 	@SuppressWarnings("unchecked")
-	public ValueEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
+	public ValueEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value, EntryType entryType) {
 		super(name);
 		this.defaultValue = (Supplier<T>) defaultValue;
 		this.initialValue = (T) value;
 		this.value = (T) value;
 		this.saveConsumer = (Consumer<T>) saveConsumer;
+		this.entryType = entryType;
 	}
 
 	protected final T getValue() {
@@ -41,9 +43,9 @@ public abstract class ValueEntry<T> extends ListEntry {
 	}
 
 	@Override
-	protected void renderHighlight(MatrixStack matrices, int width, int y, int color) {
+	protected void renderHighlight(MatrixStack matrices, int x, int width, int y, int color) {
 		int textColor = this.hasError() ? 0xFFFFAAAA : color;
-		super.renderHighlight(matrices, width, y, textColor);
+		super.renderHighlight(matrices, x, width, y, textColor);
 	}
 
 	@Override
@@ -61,7 +63,7 @@ public abstract class ValueEntry<T> extends ListEntry {
 		return this;
 	}
 
-	public final void save() {
+	public void save() {
 		this.saveConsumer.accept(this.getValue());
 	}
 

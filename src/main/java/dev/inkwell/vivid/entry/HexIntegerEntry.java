@@ -1,5 +1,6 @@
 package dev.inkwell.vivid.entry;
 
+import dev.inkwell.vivid.entry.base.EntryType;
 import dev.inkwell.vivid.entry.base.TextEntry;
 import dev.inkwell.vivid.screen.ConfigScreen;
 import net.minecraft.client.font.TextRenderer;
@@ -11,8 +12,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class HexIntegerEntry extends TextEntry<Integer> {
-	public HexIntegerEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
-		super(name, defaultValue, saveConsumer, value);
+	public HexIntegerEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value, EntryType entryType) {
+		super(name, defaultValue, saveConsumer, value, entryType);
 	}
 
 	@Override

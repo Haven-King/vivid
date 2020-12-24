@@ -1,6 +1,7 @@
 package dev.inkwell.vivid.entry.sliders;
 
 import dev.inkwell.vivid.constraints.Bounded;
+import dev.inkwell.vivid.entry.base.EntryType;
 import dev.inkwell.vivid.entry.base.ValueEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -17,8 +18,8 @@ public abstract class SliderEntry<T extends Number> extends ValueEntry<T> implem
 	private T min = null;
 	private T max = null;
 
-	public SliderEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
-		super(name, defaultValue, saveConsumer, value);
+	public SliderEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value, EntryType entryType) {
+		super(name, defaultValue, saveConsumer, value, entryType);
 	}
 
 	protected abstract float getPercentage();
@@ -32,14 +33,13 @@ public abstract class SliderEntry<T extends Number> extends ValueEntry<T> implem
 	protected abstract String stringValue();
 
 	@Override
-	public void render(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
-		super.render(matrices, index, width, y, mouseX, mouseY, delta);
+	public void renderContents(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
 		String string = this.stringValue();
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 		int dX = (int) (width - 3 - textRenderer.getWidth(string) * parent.getScale());
 		draw(matrices, MinecraftClient.getInstance().textRenderer, string, dX, y + (int) ((this.getHeight() - textRenderer.fontHeight * parent.getScale()) / 2F) - 1, 0xFFFFFFFF, parent.getScale());
 
-		int x1 = width / 2 + 6;
+		int x1 = 6;
 		int x2 = width - 2 - Math.max(textRenderer.getWidth(String.valueOf(getMin())), textRenderer.getWidth(String.valueOf(getMax())));
 		int barWidth = x2 - x1;
 		float y1 = y + getHeight() / 2F;
@@ -59,7 +59,7 @@ public abstract class SliderEntry<T extends Number> extends ValueEntry<T> implem
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		if (super.mouseClicked(mouseX, mouseY, button)) {
 			TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-			int x1 = width / 2 + 3;
+			int x1 = 3;
 			int x2 = width - 2 - Math.max(textRenderer.getWidth(String.valueOf(getMax())), textRenderer.getWidth(String.valueOf(getMin())));
 
 			if (mouseX < x1) {

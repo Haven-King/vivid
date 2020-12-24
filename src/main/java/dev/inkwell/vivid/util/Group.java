@@ -1,5 +1,6 @@
 package dev.inkwell.vivid.util;
 
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,10 @@ public class Group<T> implements Iterable<T> {
 
 	public Group(MutableText name) {
 		this.name = name;
+	}
+
+	public Group() {
+		this(new LiteralText(""));
 	}
 
 	@SafeVarargs

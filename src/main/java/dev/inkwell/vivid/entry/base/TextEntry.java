@@ -29,8 +29,8 @@ public abstract class TextEntry<T> extends ValueEntry<T> implements TickableElem
 	private Predicate<String> textPredicate = this::matches;
 
 	@SuppressWarnings("unchecked")
-	public TextEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
-		super(name, defaultValue, saveConsumer, value);
+	public TextEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value, EntryType entryType) {
+		super(name, defaultValue, saveConsumer, value, entryType);
 		this.text = this.valueOf((T) value);
 	}
 
@@ -40,9 +40,7 @@ public abstract class TextEntry<T> extends ValueEntry<T> implements TickableElem
 	}
 
 	@Override
-	public void render(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
-		super.render(matrices, index, width, y, mouseX, mouseY, delta);
-
+	public void renderContents(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
 		int left = (int) (width - 3 - textRenderer.getWidth(this.text.substring(selectionStart)) * parent.getScale());

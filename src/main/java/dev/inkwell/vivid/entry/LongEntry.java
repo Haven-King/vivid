@@ -1,6 +1,7 @@
 package dev.inkwell.vivid.entry;
 
 import dev.inkwell.vivid.constraints.Bounded;
+import dev.inkwell.vivid.entry.base.EntryType;
 import dev.inkwell.vivid.entry.base.TextEntry;
 import dev.inkwell.vivid.screen.ConfigScreen;
 import net.minecraft.client.font.TextRenderer;
@@ -17,8 +18,8 @@ public class LongEntry extends TextEntry<Long> implements Bounded<Long> {
 	private Long min = null;
 	private Long max = null;
 
-	public LongEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
-		super(name, defaultValue, saveConsumer, value);
+	public LongEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value, EntryType entryType) {
+		super(name, defaultValue, saveConsumer, value, entryType);
 	}
 
 	@Override

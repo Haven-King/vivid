@@ -30,8 +30,9 @@ import static dev.inkwell.vivid.Vivid.BLUR;
 // TODO: This class needs to be cleaned up/split up in general
 public class ConfigScreen extends Screen implements DrawableExtensions {
 	private final Screen parent;
-	private final List<Group<Group<ListEntry>>> categories;
 	private final int categoryWidth;
+
+	private List<Group<Group<ListEntry>>> categories;
 
 	private boolean isSaveDialogOpen = false;
 
@@ -77,6 +78,12 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		}
 
 		this.categoryWidth = l;
+	}
+
+	public void setCategories(List<Group<Group<ListEntry>>> categories) {
+		this.setActiveCategory(0);
+		this.categories = categories;
+		this.init(this.client, this.width, this.height);
 	}
 
 	public ConfigScreen withStyle(ScreenStyle style) {

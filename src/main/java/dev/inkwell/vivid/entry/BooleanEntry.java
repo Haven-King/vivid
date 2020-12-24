@@ -1,5 +1,6 @@
 package dev.inkwell.vivid.entry;
 
+import dev.inkwell.vivid.entry.base.EntryType;
 import dev.inkwell.vivid.entry.base.ValueEntry;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
@@ -8,17 +9,15 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class BooleanEntry extends ValueEntry<Boolean> {
-	public BooleanEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
-		super(name, defaultValue, saveConsumer, value);
+	public BooleanEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value, EntryType entryType) {
+		super(name, defaultValue, saveConsumer, value, entryType);
 	}
 
 	@Override
-	public void render(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
-		super.render(matrices, index, width, y, mouseX, mouseY, delta);
-
+	public void renderContents(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
 		matrices.push();
 
-		float x1 = width * 0.75F - 5, y1 = getHeight() / 2F - 5 + y, x2 = width * 0.75F + 5, y2 = getHeight() / 2F + 5 + y;
+		float x1 = width * 0.5F - 5, y1 = getHeight() / 2F - 5 + y, x2 = width * 0.5F + 5, y2 = getHeight() / 2F + 5 + y;
 
 		fill(matrices, x1, y1, x2, y2, 0xFFFFFFFF, 0.4F);
 

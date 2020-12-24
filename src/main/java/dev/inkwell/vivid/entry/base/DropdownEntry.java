@@ -13,8 +13,8 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 	private T[] possibleValues;
 	private float[] hoverOpacities;
 
-	public DropdownEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value) {
-		super(name, defaultValue, saveConsumer, value);
+	public DropdownEntry(MutableText name, Supplier<?> defaultValue, Consumer<?> saveConsumer, Object value, EntryType entryType) {
+		super(name, defaultValue, saveConsumer, value, entryType);
 	}
 
 	@Override
@@ -30,17 +30,17 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 	protected abstract MutableText valueOf(T value);
 
 	@Override
-	public void render(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
-		super.render(matrices, index, width, y, mouseX, mouseY, delta);
+	public void renderContents(MatrixStack matrices, int index, int width, int y, int mouseX, int mouseY, float delta) {
+		super.renderContents(matrices, index, width, y, mouseX, mouseY, delta);
 
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
-		float x1 = width / 2F;
+		float x1 = 0;
 
 		if (!this.isShaded()) {
 			MutableText text = this.valueOf(this.getValue());
 			fill(matrices, x1, y, (float) width, y + getHeight(), 0xFFFFFFFF, 0.25F);
-			drawCenteredText(matrices, textRenderer, text.styled(style -> style.withUnderline(true)), width * 0.75F, y + getHeight() * 0.24F, 0xFFFFFFFF, parent.getScale());
+			drawCenteredText(matrices, textRenderer, text.styled(style -> style.withUnderline(true)), width * 0.5F, y + getHeight() * 0.24F, 0xFFFFFFFF, parent.getScale());
 		}
 
 		int j = 0;
@@ -64,7 +64,7 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 				MutableText text = this.valueOf(value);
 				fill(matrices, x1, y1, (float) width, y2, 0xFFFFFFFF, alpha);
 				fill(matrices, x1, y1, (float) width, y2, 0xFFFFFFFF, hoverOpacities[j] * 0.75F);
-				drawCenteredText(matrices, textRenderer, text, width * 0.75F, y1 + getHeight() / 4F, 0xFFFFFFFF, parent.getScale());
+				drawCenteredText(matrices, textRenderer, text, width * 0.5F, y1 + getHeight() / 4F, 0xFFFFFFFF, parent.getScale());
 			}
 
 			j++;
@@ -112,5 +112,4 @@ public abstract class DropdownEntry<T> extends ShadedEntry<T> {
 		super.setFocused(focused);
 		this.setShade(this.isShaded() && focused);
 	}
-
 }

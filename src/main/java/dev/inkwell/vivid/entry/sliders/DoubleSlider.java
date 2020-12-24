@@ -1,13 +1,14 @@
 package dev.inkwell.vivid.entry.sliders;
 
+import dev.inkwell.vivid.entry.base.EntryType;
 import net.minecraft.text.MutableText;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DoubleSlider extends SliderEntry<Double> {
-	public DoubleSlider(MutableText name, Supplier<?> defaultValue, Consumer<Object> saveConsumer, Object value) {
-		super(name, defaultValue, saveConsumer, value);
+	public DoubleSlider(MutableText name, Supplier<?> defaultValue, Consumer<Object> saveConsumer, Object value, EntryType entryType) {
+		super(name, defaultValue, saveConsumer, value, entryType);
 	}
 
 	@Override
