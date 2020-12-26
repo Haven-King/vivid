@@ -1,24 +1,23 @@
 package dev.inkwell.vivid.util;
 
-import dev.inkwell.vivid.builders.ValueEntryBuilder;
-import net.minecraft.util.Pair;
+import dev.inkwell.vivid.builders.WidgetComponentBuilder;
 
 import java.util.function.Supplier;
 
-public abstract class StronglyTypedCollection<K, V> implements Iterable<Pair<K, V>> {
+public abstract class StronglyTypedCollection<K, V, I> implements Iterable<I> {
     protected final Class<V> valueClass;
     protected final Supplier<V> defaultValue;
-    protected final ValueEntryBuilder<V> valueEntryBuilder;
+    protected final WidgetComponentBuilder<V> builder;
 
-    public StronglyTypedCollection(Class<V> valueClass, Supplier<V> defaultValue, ValueEntryBuilder<V> valueEntryBuilder) {
+    public StronglyTypedCollection(Class<V> valueClass, Supplier<V> defaultValue, WidgetComponentBuilder<V> builder) {
         this.valueClass = valueClass;
         this.defaultValue = defaultValue;
-        this.valueEntryBuilder = valueEntryBuilder;
+        this.builder = builder;
 
     }
 
-    public final ValueEntryBuilder<V> getValueEntryBuilder() {
-        return this.valueEntryBuilder;
+    public final WidgetComponentBuilder<V> getBuilder() {
+        return this.builder;
     }
 
     public abstract void addEntry();
@@ -29,4 +28,8 @@ public abstract class StronglyTypedCollection<K, V> implements Iterable<Pair<K, 
     }
 
     public abstract void put(K key, V v);
+
+    public abstract void remove(int index);
+
+    public abstract int size();
 }

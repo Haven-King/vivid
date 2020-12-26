@@ -3,6 +3,8 @@ package dev.inkwell.vivid.widgets;
 import dev.inkwell.vivid.DrawableExtensions;
 import dev.inkwell.vivid.VividConfig;
 import dev.inkwell.vivid.screen.ConfigScreen;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.TickableElement;
 import net.minecraft.client.util.math.MatrixStack;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class WidgetComponent implements Element, DrawableExtensions, TickableElement {
-    private final ConfigScreen parent;
+    protected final ConfigScreen parent;
     private final List<Text> tooltips = new ArrayList<>();
     protected int x, y, width, height;
     protected float hoverOpacity = 0F;
@@ -29,26 +31,30 @@ public abstract class WidgetComponent implements Element, DrawableExtensions, Ti
         this.height = height;
     }
 
-    public final void render(MatrixStack matrixStack, int mouseX, int mouseY, float delta) {
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float delta, boolean shouldRenderHighlight) {
         this.lastMouseX = mouseX;
         this.lastMouseY = mouseY;
 
         this.renderBackground(matrixStack, mouseX, mouseY, delta);
-        this.renderHighlight(matrixStack, mouseX, mouseY, delta);
+
+        if (shouldRenderHighlight) {
+            this.renderHighlight(matrixStack, mouseX, mouseY, delta);
+        }
+
         this.renderContents(matrixStack, mouseX, mouseY, delta);
 
         if (this.isMouseOver(mouseX, mouseY)) {
-            this.parent.addTooltips(this.tooltips);
+            this.addTooltipsToList(parent.tooltips);
         }
     }
 
-    protected abstract void renderBackground(MatrixStack matrixStack, int mouseX, int mouseY, float delta);
+    public abstract void renderBackground(MatrixStack matrixStack, int mouseX, int mouseY, float delta);
 
-    protected void renderHighlight(MatrixStack matrixStack, int mouseX, int mouseY, float delta) {
-        fill(matrixStack, this.x, this.y, this.width, this.y + this.height, this.highlightColor(), this.hoverOpacity * 0.75F);
+    public void renderHighlight(MatrixStack matrixStack, int mouseX, int mouseY, float delta) {
+        fill(matrixStack, this.x, this.y, this.x + this.width, this.y + this.height, this.highlightColor(), this.hoverOpacity * 0.75F);
     }
 
-    protected abstract void renderContents(MatrixStack matrixStack, int mouseX, int mouseY, float delta);
+    public abstract void renderContents(MatrixStack matrixStack, int mouseX, int mouseY, float delta);
 
     protected int highlightColor() {
         return 0xFFFFFFFF;
@@ -70,7 +76,7 @@ public abstract class WidgetComponent implements Element, DrawableExtensions, Ti
         return false;
     }
 
-    public void setFocus(boolean focused) {
+    public void setFocused(boolean focused) {
         this.focused = this.holdsFocus() && focused;
     }
 
@@ -81,7 +87,7 @@ public abstract class WidgetComponent implements Element, DrawableExtensions, Ti
     @Override
     public void tick() {
         if (VividConfig.Animation.ENABLED) {
-            if (isMouseOver(this.lastMouseX, this.lastMouseY) && (this.parent.getFocused() == null || this.parent.getFocused() == this)) {
+            if (isMouseOver(this.lastMouseX, this.lastMouseY)) {
                 this.hoverOpacity = Math.min(1F, VividConfig.Animation.SPEED + this.hoverOpacity);
             } else {
                 this.hoverOpacity = Math.max(0F, this.hoverOpacity - VividConfig.Animation.SPEED);
@@ -95,5 +101,42 @@ public abstract class WidgetComponent implements Element, DrawableExtensions, Ti
     public boolean isMouseOver(double mouseX, double mouseY) {
         return mouseX >= this.x && mouseX <= this.x + this.width
                 && mouseY >= this.y && mouseY <= this.y + this.height;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return this.height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    protected float textYPos() {
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+        return this.y + this.height / 2F - (textRenderer.fontHeight * parent.getScale() + 4 * parent.getScale()) / 2F;
     }
 }

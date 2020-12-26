@@ -2,37 +2,42 @@ package dev.inkwell.vivid.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.inkwell.vivid.DrawableExtensions;
-import dev.inkwell.vivid.constraints.Constraint;
-import dev.inkwell.vivid.entry.base.ListEntry;
-import dev.inkwell.vivid.entry.base.ValueEntry;
+import dev.inkwell.vivid.builders.ConfigScreenBuilder;
 import dev.inkwell.vivid.util.Group;
+import dev.inkwell.vivid.widgets.Mutable;
+import dev.inkwell.vivid.widgets.WidgetComponent;
+import dev.inkwell.vivid.widgets.value.SectionHeaderComponent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.TickableElement;
 import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static dev.inkwell.vivid.Vivid.BLUR;
 
 // TODO: This class needs to be cleaned up/split up in general
 public class ConfigScreen extends Screen implements DrawableExtensions {
 	private final Screen parent;
-	private final int categoryWidth;
+	private ConfigScreenBuilder provider;
 
-	private List<Group<Group<ListEntry>>> categories;
+	private List<Group<Group<WidgetComponent>>> categories;
 
 	private boolean isSaveDialogOpen = false;
 
@@ -52,11 +57,9 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 	private double clickedX;
 	private float lastTickDelta;
+	private int contentHeight;
 
-	private int lastY = 0;
-
-	private List<Text> tooltips = new ArrayList<>();
-	private ListEntry hovered = null;
+	public final List<Text> tooltips = new ArrayList<>();
 
 	// TODO: Better error hoisting?
 	@SuppressWarnings({"FieldCanBeLocal", "unused"})
@@ -65,24 +68,15 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	private AbstractButtonWidget yesButton;
 	private AbstractButtonWidget noButton;
 
-	public ConfigScreen(Screen parent, List<Group<Group<ListEntry>>> categories) {
-		super(categories.get(0).getName());
+	public ConfigScreen(Screen parent, ConfigScreenBuilder provider) {
+		super(LiteralText.EMPTY);
+		this.provider = provider;
 		this.parent = parent;
-		this.categories = categories;
-
-		int l = 0;
-
-		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-		for (Group<?> group : this.categories) {
-			l = Math.max(l, textRenderer.getWidth(group.getName()));
-		}
-
-		this.categoryWidth = l;
 	}
 
-	public void setCategories(List<Group<Group<ListEntry>>> categories) {
+	public void setProvider(ConfigScreenBuilder provider) {
 		this.setActiveCategory(0);
-		this.categories = categories;
+		this.provider = provider;
 		this.init(this.client, this.width, this.height);
 	}
 
@@ -95,18 +89,37 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	public void init(MinecraftClient client, int width, int height) {
 		super.init(client, width, height);
 
-		headerSize = client.textRenderer.fontHeight * 3;
-		contentWidth = height > width ? (width - 12) : width / 2;
-		visibleHeight = this.height - headerSize;
-		margin = height > width ? 6 : width / 4F;
+		this.headerSize = client.textRenderer.fontHeight * 3;
+		this.contentWidth = height > width ? (width - 12) : width / 2;
+		this.visibleHeight = this.height - headerSize;
+		this.margin = height > width ? 6 : width / 4F;
 
 		double test = client.getWindow().getScaleFactor();
 
-		scale = (float) (2F / test);
+		this.scale = (float) (0.5 + 0.125 * ((3 - (test - 1))));
 
 		int padding = 3;
 		int buttonWidth = 45;
 		int buttonHeight = 15;
+
+		this.categories = this.provider.build(this, (int) margin, contentWidth, headerSize);
+
+		MutableInt contentHeight = new MutableInt();
+		this.iterateActive(widget -> {
+			contentHeight.add(widget.getHeight());
+		});
+
+		this.contentHeight = contentHeight.getValue();
+		this.scrollAmount = 0;
+
+		int l = 0;
+
+		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+		for (Group<?> group : this.categories) {
+			l = Math.max(l, textRenderer.getWidth(group.getName()));
+		}
+
+		int categoryWidth = l;
 
 		yesButton = new FancyButton(this,
 				width / 2 - buttonWidth - padding,
@@ -115,13 +128,11 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 				buttonHeight,
 				new TranslatableText("gui.yes"),
 				button -> {
-					for (Group<ListEntry> section : categories.get(activeCategory)) {
-						for (ListEntry entry : section) {
-							if (entry instanceof ValueEntry && ((ValueEntry<?>) entry).hasChanged()) {
-								((ValueEntry<?>) entry).save();
-							}
+					this.iterate(widget -> {
+						if (widget instanceof Mutable) {
+							((Mutable) widget).save();
 						}
-					}
+					});
 
 					this.onClose();
 				}
@@ -154,12 +165,6 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 			if (i == activeCategory) {
 				button.active = false;
-			}
-
-			for (Group<ListEntry> section : categories.get(i)) {
-				for (ListEntry entry : section) {
-					entry.init(this);
-				}
 			}
 
 			this.addButton(button);
@@ -199,88 +204,47 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		this.renderBackground(matrices);
 		this.style.renderDecorations(matrices, useMouseX, useMouseY, tickDelta, this.width, this.height, this.headerSize);
 
-		int contentHeight = lastY - headerSize;
-
-		Group<Group<ListEntry>> sections = categories.get(activeCategory);
-		int sectionColor = this.style.sectionColor.getColor() != null
-				? this.style.sectionColor.getColor().getRgb()
-				: 0xFFFFFFFF;
-
 		if (contentHeight > visibleHeight) {
-			float ratio = visibleHeight / (float) contentHeight;
+			WidgetComponent firstWidget = (this.categories.get(this.activeCategory).get(0).get(0));
+			int padding = (firstWidget instanceof SectionHeaderComponent ? firstWidget.getHeight() : 0);
+
+			float ratio = (visibleHeight - headerSize - padding / 2F) / (float) contentHeight;
 			int startX = height > width ? (int) (contentWidth + margin + 2) : (int) (margin * 3 + 2);
-			int startY = (int) (this.headerSize - scrollAmount * ratio) + (sections.get(0).getName().getString().isEmpty() ? 0 : 10);
-			int height = (int) (ratio * visibleHeight) - this.headerSize;
+
+			int startY = (int) (this.headerSize - scrollAmount * ratio) + padding;
+			int height = (int) (ratio * (visibleHeight - padding)) - this.headerSize;
 			boolean hovered = useMouseX >= startX && useMouseY >= startY && useMouseX <= startX + 3 && useMouseY <= startY + height;
 			this.style.renderScrollbar(matrices, startX, startY, 3, height, false, hovered);
 		}
 
 		super.render(matrices, useMouseX, useMouseY, tickDelta);
 
-
 		matrices.push();
-		matrices.translate(margin, 0, 0F);
 
 		GL11.glEnable(GL11.GL_SCISSOR_TEST);
 		Window window = client.getWindow();
 		float test = ((this.height - this.headerSize) / (float) this.height);
 		GL11.glScissor(0, 0, window.getFramebufferWidth(), (int) (window.getFramebufferHeight() * test));
 
-		int y = this.headerSize;
-
 		this.hasError = false;
-		this.hovered = null;
 
-		int focusedJ = 0;
-		int focusedY = 0;
-
-		for (int i = 0; i < sections.size(); ++i) {
-			Group<ListEntry> section = sections.get(i);
-
-			if (!section.getName().getString().isEmpty()) {
-				this.draw(matrices, this.textRenderer, section.getName(), 0, y + scrollAmount, sectionColor, scale);
-
-				if (useMouseX >= margin && useMouseX <= margin + this.contentWidth / 2F && useMouseY >= y + scrollAmount && useMouseY <= y + scrollAmount + 10) {
-					this.addTooltips(section.getTooltips());
-				}
-
-				y += 10;
+		this.iterateActive(widget -> {
+			if (widget != this.getFocused()) {
+				widget.render(matrices, mouseX, mouseY, tickDelta, true);
 			}
 
-			for (int j = 0; j < section.size(); ++j) {
-				ListEntry entry = section.get(j);
-
-				if (this.getFocused() instanceof ListEntry && entry == this.getFocused()) {
-					focusedJ = j;
-					focusedY = y + scrollAmount;
-				} else {
-					entry.render(matrices, j, contentWidth, y + scrollAmount, (int) (useMouseX - margin), useMouseY, tickDelta);
-				}
-
-				if (useMouseY > this.headerSize && entry.isMouseOver(useMouseX - margin, useMouseY) && (entry == this.getFocused() || this.getFocused() == null)) {
-					entry.addTooltipsToList(tooltips);
-					this.hovered = entry;
-				}
-
-				if (entry instanceof Constraint) {
-					this.hasError |= !((Constraint) entry).passes();
-				}
-
-				y += entry.getHeight();
+			if (widget.isMouseOver(mouseX, mouseY)) {
+				widget.addTooltipsToList(this.tooltips);
 			}
+		});
 
-			y += 15;
+		if (this.getFocused() instanceof WidgetComponent) {
+			((WidgetComponent) this.getFocused()).render(matrices, mouseX, mouseY, tickDelta, true);
 		}
 
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
-		if (this.getFocused() instanceof ListEntry) {
-			((ListEntry) this.getFocused()).render(matrices, focusedJ, contentWidth, focusedY, (int) (useMouseX - margin), useMouseY, tickDelta);
-		}
-
 		matrices.pop();
-
-		lastY = y - this.headerSize;
 
 		if (!tooltips.isEmpty()) {
 			this.renderTooltip(matrices, tooltips, useMouseX, useMouseY);
@@ -295,8 +259,6 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			BLUR.setUniformValue("End", 1F, 1F);
 			BLUR.render(1F);
 
-			int padding = 3;
-			int buttonWidth = 45;
 			int buttonHeight = 20;
 
 			int changedCount = this.changedCount();
@@ -319,6 +281,13 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		}
 
 		this.scrollAmount = 0;
+
+		MutableInt contentHeight = new MutableInt();
+		this.iterateActive(widget -> {
+			contentHeight.add(widget.getHeight());
+		});
+
+		this.contentHeight = contentHeight.getValue();
 	}
 
 	@Override
@@ -329,13 +298,19 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-		amount *= 5;
-		int scrollAmount = (int) Math.min(Math.max(minScrollAmount(), this.scrollAmount + amount), maxScrollAmount());
-		boolean changed = scrollAmount != this.scrollAmount;
-		this.scrollAmount = scrollAmount;
+	public boolean mouseScrolled(double mouseX, double mouseY, final double amount) {
+		double scrollAmount = amount * 5;
 
-		return changed;
+		int newScrollAmount = MathHelper.clamp((int) (this.scrollAmount + scrollAmount), this.minScrollAmount(), this.maxScrollAmount());
+		int dY = newScrollAmount - this.scrollAmount;
+
+		this.iterateActive(widget -> {
+			widget.scroll(dY);
+		});
+
+		this.scrollAmount += dY;
+
+		return true;
 	}
 
 	private int maxScrollAmount() {
@@ -343,7 +318,11 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	}
 
 	private int minScrollAmount() {
-		return -(this.lastY - this.height + this.headerSize);
+		if (this.contentHeight > this.visibleHeight) {
+			return -this.contentHeight + this.visibleHeight - this.headerSize;
+		} else {
+			return 0;
+		}
 	}
 
 	@Override
@@ -355,14 +334,21 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 					? clickedX > margin + contentWidth + 3
 					: clickedX > (margin) * 3 + 2 && clickedX < margin * 3 + 5;
 			if (bl) {
-				return mouseScrolled(mouseX, mouseY, -deltaY);
+				float ratio = visibleHeight / (float) contentHeight;
+				int startY = (int) (this.headerSize - scrollAmount * ratio);
+				int height = (int) (ratio * visibleHeight) - this.headerSize;
+
+				double centerY = startY + height / 2F;
+
+				double scrollAmount = -(mouseY - centerY) / 5D;
+
+				this.mouseScrolled(mouseX, mouseY, scrollAmount);
 			} else {
-				for (Group<ListEntry> section : categories.get(activeCategory)) {
-					for (ListEntry entry : section) {
-						if (entry.mouseDragged(mouseX - margin, mouseY, button, deltaX, deltaY)) {
-							return true;
-						}
-					}
+				MutableBoolean mut = new MutableBoolean();
+				this.iterateActive(widget -> mut.setValue(widget.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)));
+
+				if (mut.booleanValue()) {
+					return true;
 				}
 			}
 
@@ -385,37 +371,38 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 			return false;
 		} else {
 			boolean bl = super.mouseClicked(mouseX, mouseY, button);
-			this.setFocused(null);
 
 			clickedX = mouseX;
 
 			if (bl) {
-				for (Group<ListEntry> section : categories.get(activeCategory)) {
-					for (ListEntry entry : section) {
-						entry.setFocused(false);
-					}
-				}
+				this.iterateActive(widget -> widget.setFocused(false));
 			} else {
-				if (getFocused() == null || !getFocused().isMouseOver(mouseX - margin, mouseY)) {
-					for (Group<ListEntry> section : categories.get(activeCategory)) {
-						for (ListEntry entry : section) {
-							if (entry.holdsFocus()) {
-								entry.setFocused(entry.isMouseOver(mouseX - margin, mouseY));
+				if (getFocused() == null || !getFocused().isMouseOver(mouseX, mouseY)) {
+					MutableBoolean mut = new MutableBoolean();
 
-								if (entry.isFocused()) {
-									this.setFocused(entry);
-								}
+					this.iterateActive(widget -> {
+						if (widget.holdsFocus()) {
+							widget.setFocused(widget.isMouseOver(mouseX, mouseY));
+
+							if (widget.isFocused()) {
+								this.setFocused(widget);
 							}
-
-							bl = bl || entry.mouseClicked(mouseX - margin, mouseY, button);
 						}
-					}
+
+						mut.setValue(mut.getValue() || widget.mouseClicked(mouseX, mouseY, button));
+					});
+
+					bl = mut.booleanValue();
 				} else {
-					bl = getFocused().mouseClicked(mouseX - margin, mouseY, button);
+					bl = getFocused().mouseClicked(mouseX, mouseY, button);
 				}
 			}
 
 			if (!bl) {
+				if (this.getFocused() instanceof WidgetComponent) {
+					((WidgetComponent) this.getFocused()).setFocused(false);
+				}
+
 				this.setFocused(null);
 			}
 
@@ -441,26 +428,24 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		if (this.isSaveDialogOpen) {
 
 		} else {
-			if (this.getFocused() != null && this.getFocused() instanceof TickableElement) {
-				((TickableElement) this.getFocused()).tick();
+			if (this.getFocused() instanceof WidgetComponent) {
+				((WidgetComponent) this.getFocused()).tick();
+			} else {
+				this.iterateActive(WidgetComponent::tick);
 			}
 		}
 	}
 
 	private int changedCount() {
-		int changed = 0;
+		MutableInt changed = new MutableInt(0);
 
-		for (Group<Group<ListEntry>> category : this.categories) {
-			for (Group<ListEntry> section : category) {
-				for (ListEntry entry : section) {
-					if (entry instanceof ValueEntry && ((ValueEntry<?>) entry).hasChanged()) {
-						++changed;
-					}
-				}
+		this.iterate(widget -> {
+			if (widget instanceof Mutable && ((Mutable) widget).hasChanged()) {
+				changed.add(1);
 			}
-		}
+		});
 
-		return changed;
+		return changed.getValue();
 	}
 
 	@Override
@@ -581,10 +566,6 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 			int color = 0x80000000;
 
-			if (hovered instanceof ValueEntry) {
-				color = ((ValueEntry<?>) hovered).hasError() ? 0xB0800000 : color;
-			}
-
 			fill(matrix4f, bufferBuilder, k - offset, l - offset, k + i + offset, l + n + offset, 400, color);
 			RenderSystem.enableDepthTest();
 			RenderSystem.disableTexture();
@@ -617,5 +598,23 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 	public float getScale() {
 		return this.scale;
+	}
+
+	private void iterate(Consumer<WidgetComponent> action) {
+		for (Group<Group<WidgetComponent>> category : this.categories) {
+			this.iterate(category, action);
+		}
+	}
+
+	private void iterateActive(Consumer<WidgetComponent> action) {
+		this.iterate(this.categories.get(this.activeCategory), action);
+	}
+
+	private void iterate(Group<Group<WidgetComponent>> category, Consumer<WidgetComponent> action) {
+		for (Group<WidgetComponent> section : category) {
+			for (WidgetComponent widget : section) {
+				action.accept(widget);
+			}
+		}
 	}
 }

@@ -1,7 +1,9 @@
 package dev.inkwell.vivid.builders;
 
-import dev.inkwell.vivid.entry.base.ListEntry;
+import dev.inkwell.vivid.screen.ConfigScreen;
 import dev.inkwell.vivid.util.Group;
+import dev.inkwell.vivid.widgets.SpacerComponent;
+import dev.inkwell.vivid.widgets.WidgetComponent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
@@ -25,12 +27,30 @@ public class CategoryBuilder extends Group<SectionBuilder> {
 		return this.addSection(new SectionBuilder(name));
 	}
 
-	public Group<Group<ListEntry>> build() {
-		Group<Group<ListEntry>> category = new Group<>(this.name);
+	public Group<Group<WidgetComponent>> build(ConfigScreen parent, int contentLeft, int contentWidth, int headerOffset) {
+		Group<Group<WidgetComponent>> category = new Group<>(this.name);
 		category.addAll(this.tooltips);
 
-		for (SectionBuilder sectionBuilder : this) {
-			category.add(sectionBuilder.build());
+		int y = headerOffset;
+
+		Integer index = 0;
+		for (int i = 0; i < this.size(); ++i) {
+			Group<WidgetComponent> section = this.get(i).build(parent, contentLeft, contentWidth, y, index);
+			category.add(section);
+
+			if (i == this.size() - 1) {
+				int offset = y;
+
+				for (WidgetComponent component : section) {
+					y += component.getHeight();
+				}
+
+				section.add(new SpacerComponent(parent, contentLeft, offset, contentWidth, 15));
+			}
+
+			for (WidgetComponent component : section) {
+				y += component.getHeight();
+			}
 		}
 
 		return category;

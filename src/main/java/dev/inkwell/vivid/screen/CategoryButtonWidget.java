@@ -22,6 +22,12 @@ public class CategoryButtonWidget extends ButtonWidget implements DrawableExtens
 	}
 
 	@Override
+	public void onClick(double mouseX, double mouseY) {
+		super.onClick(mouseX, mouseY);
+		this.parent.setFocused(null);
+	}
+
+	@Override
 	public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
 		this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
 

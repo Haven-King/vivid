@@ -1,55 +1,109 @@
 package dev.inkwell.vivid.util;
 
-import dev.inkwell.vivid.builders.ValueEntryBuilder;
+import dev.inkwell.vivid.builders.WidgetComponentBuilder;
 import net.minecraft.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Supplier;
 
-public class Table<V> extends StronglyTypedCollection<String, V> {
-    private final Map<String, V> map;
-    private List<Pair<String, V>> iterList;
+public class Table<T> extends StronglyTypedCollection<Integer, T, Table.Entry<String, T>> {
+    protected final List<Entry<String, T>> list = new ArrayList<>();
 
-    public Table(Class<V> valueClass, Supplier<V> defaultValue, ValueEntryBuilder<V> valueEntryBuilder) {
-        super(valueClass, defaultValue, valueEntryBuilder);
-        this.map = new LinkedHashMap<>();
+    public Table(Class<T> valueClass, Supplier<T> defaultValue, WidgetComponentBuilder<T> builder, Entry<String, T>... values) {
+        super(valueClass, defaultValue, builder);
+        this.list.addAll(Arrays.asList(values));
     }
 
-    public Table<V> add(String key, V value) {
-        this.map.put(key, value);
-        this.iterList = null;
-        return this;
+    public Table(Table<T> other) {
+        super(other.valueClass, other.defaultValue, other.builder);
+        this.copy(other);
+    }
+
+    public void copy(Table<T> other) {
+        this.list.clear();
+        this.list.addAll(other.list);
     }
 
     @Override
     public void addEntry() {
-        this.map.put("", this.defaultValue.get());
-        this.iterList = null;
+        this.list.add(new Entry<>("", this.defaultValue.get()));
     }
 
     @Override
-    public V get(String key) {
-        return this.map.get(key);
+    public T get(Integer key) {
+        return this.list.get(key).getValue();
     }
 
     @Override
-    public void put(String key, V v) {
-        this.map.put(key, v);
-        this.iterList = null;
+    public void put(Integer key, T value) {
+        list.get(key).setValue(value);
+    }
+
+    @Override
+    public void remove(int index) {
+        this.list.remove(index);
+    }
+
+    @Override
+    public int size() {
+        return this.list.size();
     }
 
     @NotNull
     @Override
-    public Iterator<Pair<String, V>> iterator() {
-        if (this.iterList == null) {
-            this.iterList = new ArrayList<>(this.map.size());
+    public Iterator<Entry<String, T>> iterator() {
+        return this.list.iterator();
+    }
 
-            for (Map.Entry<String, V> entry : this.map.entrySet()) {
-                this.iterList.add(new Pair<>(entry.getKey(), entry.getValue()));
+    public void setKey(int index, String v) {
+        this.list.get(index).setKey(v);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("Table[");
+
+        for (int i = 0; i < this.list.size(); ++i) {
+            builder.append("(")
+                    .append(this.list.get(i).key)
+                    .append(",")
+                    .append(this.list.get(i).value)
+                    .append(")");
+
+            if (i < this.list.size() - 1) {
+                builder.append(", ");
             }
         }
 
-        return this.iterList.iterator();
+        builder.append(']');
+
+        return builder.toString();
+    }
+
+    public static class Entry<K, V> {
+        private K key;
+        private V value;
+
+        public Entry(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public K getKey() {
+            return key;
+        }
+
+        public void setKey(K key) {
+            this.key = key;
+        }
+
+        public V getValue() {
+            return value;
+        }
+
+        public void setValue(V value) {
+            this.value = value;
+        }
     }
 }

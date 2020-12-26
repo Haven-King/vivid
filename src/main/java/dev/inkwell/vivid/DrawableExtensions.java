@@ -45,7 +45,15 @@ public interface DrawableExtensions {
 		matrices.pop();
 	}
 
-	default void draw(MatrixStack matrices, TextRenderer textRenderer, Text text, int x, int y, int color, float scale) {
+	default void drawCenteredString(MatrixStack matrices, TextRenderer textRenderer, String string, float centerX, float y, int color, float scale) {
+		matrices.push();
+		matrices.scale(scale, scale, 1F);
+		matrices.translate(centerX / scale, (y + textRenderer.fontHeight / 2F) / scale, 0);
+		DrawableHelper.drawCenteredString(matrices, textRenderer, string, 0, -textRenderer.fontHeight / 2, color);
+		matrices.pop();
+	}
+
+	default void draw(MatrixStack matrices, TextRenderer textRenderer, Text text, float x, float y, int color, float scale) {
 		matrices.push();
 		matrices.scale(scale, scale, 1F);
 		matrices.translate(x / scale, (y + textRenderer.fontHeight / 2F) / scale, 0);
@@ -61,7 +69,7 @@ public interface DrawableExtensions {
 		matrices.pop();
 	}
 
-	default void draw(MatrixStack matrices, TextRenderer textRenderer, String text, int x, int y, int color, float scale) {
+	default void draw(MatrixStack matrices, TextRenderer textRenderer, String text, float x, float y, int color, float scale) {
 		matrices.push();
 		matrices.scale(scale, scale, 1F);
 		matrices.translate(x / scale, (y + textRenderer.fontHeight / 2F) / scale, 0);
