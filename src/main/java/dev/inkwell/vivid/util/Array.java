@@ -8,8 +8,8 @@ import java.util.function.Supplier;
 
 public class Array<T> extends StronglyTypedList<T, T> {
     @SafeVarargs
-    public Array(Class<T> valueClass, Supplier<T> defaultValue, WidgetComponentBuilder<T> builder, T... values) {
-        super(valueClass, defaultValue, builder, values);
+    public Array(Class<T> valueClass, Supplier<T> defaultValue, T... values) {
+        super(valueClass, defaultValue, values);
     }
 
     public Array(Array<T> other) {

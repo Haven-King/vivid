@@ -1,7 +1,5 @@
 package dev.inkwell.vivid.util;
 
-import dev.inkwell.vivid.builders.WidgetComponentBuilder;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,13 +8,14 @@ import java.util.function.Supplier;
 public abstract class StronglyTypedList<T, I> extends StronglyTypedCollection<Integer, T, I> {
     protected final List<T> list = new ArrayList<>();
 
-    public StronglyTypedList(Class<T> valueClass, Supplier<T> defaultValue, WidgetComponentBuilder<T> builder, T... values) {
-        super(valueClass, defaultValue, builder);
+    @SafeVarargs
+    public StronglyTypedList(Class<T> valueClass, Supplier<T> defaultValue, T... values) {
+        super(valueClass, defaultValue);
         this.list.addAll(Arrays.asList(values));
     }
 
     public StronglyTypedList(StronglyTypedList<T, I> other) {
-        super(other.valueClass, other.defaultValue, other.builder);
+        super(other.valueClass, other.defaultValue);
         this.copy(other);
     }
 

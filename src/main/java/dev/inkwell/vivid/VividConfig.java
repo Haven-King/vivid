@@ -42,12 +42,12 @@ public class VividConfig implements ModMenuApi {
 		public static float SPEED = 0.2F;
 	}
 
-	private static final WidgetComponentBuilder<Integer> INT_SLIDER_BUILDER = (parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, value) -> {
-		return new IntegerSliderWidget(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, value, -10, 10);
-	};
+	private static final WidgetComponentBuilder<Integer> INT_SLIDER_BUILDER =
+			(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, value) ->
+					new IntegerSliderWidget(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, value, -10, 10);
 
-	public static final Array<Integer> TEST1 = new Array<>(Integer.class, () -> 5, INT_SLIDER_BUILDER, 1, 2, 3, 4, 5, 6, 7);
-	public static final Table<Integer> TEST2 = new Table<>(Integer.class, () -> 5, INT_SLIDER_BUILDER,
+	public static final Array<Integer> TEST1 = new Array<>(Integer.class, () -> 5, 1, 2, 3, 4, 5, 6, 7);
+	public static final Table<Integer> TEST2 = new Table<>(Integer.class, () -> 5,
 			new Table.Entry<>("alpha", 7),
 			new Table.Entry<>("beta", 6),
 			new Table.Entry<>("gamma", 5)
@@ -128,11 +128,12 @@ public class VividConfig implements ModMenuApi {
 							y,
 							width / 2,
 							(int) (30 * parent.getScale()),
-							() -> new Array<>(Integer.class, () -> 0, INT_SLIDER_BUILDER, 0, 1, 2, 3),
+							() -> new Array<>(Integer.class, () -> 0, 0, 1, 2, 3),
 							a -> {},
 							TEST1::copy,
 							TEST1,
-							new LiteralText("List Test")
+							new LiteralText("List Test"),
+							INT_SLIDER_BUILDER
 					);
 
 					return new RowContainer(parent, x, y, index, true, label, entry);
@@ -146,16 +147,17 @@ public class VividConfig implements ModMenuApi {
 							y,
 							width / 2,
 							(int) (30 * parent.getScale()),
-							() -> new Table<>(Integer.class, () -> 0, INT_SLIDER_BUILDER,
+							() -> new Table<>(Integer.class, () -> 0,
 									new Table.Entry<>("alpha", 1),
 									new Table.Entry<>("beta", 2),
 									new Table.Entry<>("gamma", 3)
 							),
-							a -> {},
+							a -> {
+							},
 							TEST2::copy,
 							TEST2,
-							new LiteralText("Table Test 1")
-					);
+							new LiteralText("Table Test 1"),
+							INT_SLIDER_BUILDER);
 
 					return new RowContainer(parent, x, y, index, true, label, entry);
 				});
@@ -169,7 +171,7 @@ public class VividConfig implements ModMenuApi {
 						y,
 						width / 2,
 						(int) (30 * parent.getScale()),
-						() -> new Table<>(Integer.class, () -> 0, INT_SLIDER_BUILDER,
+						() -> new Table<>(Integer.class, () -> 0,
 								new Table.Entry<>("alpha", 1),
 								new Table.Entry<>("beta", 2),
 								new Table.Entry<>("gamma", 3)
@@ -178,7 +180,7 @@ public class VividConfig implements ModMenuApi {
 						TEST2::copy,
 						TEST2,
 						new LiteralText("Table Test 2"),
-						false
+						INT_SLIDER_BUILDER, false
 				);
 
 				return new RowContainer(parent, x, y, index, true, label, entry);

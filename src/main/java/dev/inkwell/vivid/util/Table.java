@@ -1,22 +1,24 @@
 package dev.inkwell.vivid.util;
 
-import dev.inkwell.vivid.builders.WidgetComponentBuilder;
-import net.minecraft.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class Table<T> extends StronglyTypedCollection<Integer, T, Table.Entry<String, T>> {
     protected final List<Entry<String, T>> list = new ArrayList<>();
 
-    public Table(Class<T> valueClass, Supplier<T> defaultValue, WidgetComponentBuilder<T> builder, Entry<String, T>... values) {
-        super(valueClass, defaultValue, builder);
+    @SafeVarargs
+    public Table(Class<T> valueClass, Supplier<T> defaultValue, Entry<String, T>... values) {
+        super(valueClass, defaultValue);
         this.list.addAll(Arrays.asList(values));
     }
 
     public Table(Table<T> other) {
-        super(other.valueClass, other.defaultValue, other.builder);
+        super(other.valueClass, other.defaultValue);
         this.copy(other);
     }
 

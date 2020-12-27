@@ -1,6 +1,7 @@
 package dev.inkwell.vivid.widgets.compound;
 
 import dev.inkwell.vivid.builders.ConfigScreenBuilder;
+import dev.inkwell.vivid.builders.WidgetComponentBuilder;
 import dev.inkwell.vivid.screen.ConfigScreen;
 import dev.inkwell.vivid.util.Array;
 import dev.inkwell.vivid.util.Group;
@@ -24,14 +25,16 @@ import java.util.function.Supplier;
 
 public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements ConfigScreenBuilder {
     private final Text name;
+    private final WidgetComponentBuilder<T> builder;
     private final float scale;
 
     private ConfigScreen screen;
     private boolean changed;
 
-    public ArrayWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Array<T>> defaultValueSupplier, Consumer<Array<T>> changedListener, Consumer<Array<T>> saveConsumer, @NotNull Array<T> value, Text name) {
+    public ArrayWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Array<T>> defaultValueSupplier, Consumer<Array<T>> changedListener, Consumer<Array<T>> saveConsumer, @NotNull Array<T> value, Text name, WidgetComponentBuilder<T> builder) {
         super(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, new Array<>(value));
         this.name = name;
+        this.builder = builder;
         this.scale = this.height / parent.getScale();
     }
 
@@ -90,6 +93,7 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
         for (T value : array) {
             int index = i++;
 
+            @SuppressWarnings("SuspiciousNameCombination")
             WidgetComponent remove = new TextButton(
                     parent, 0, 0, height, height, 0, new LiteralText("✕"), button ->
                 {
@@ -105,6 +109,7 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
                 }
             };
 
+            @SuppressWarnings("SuspiciousNameCombination")
             WidgetComponent up = new TextButton(
                     parent, 0, 0, height, height, 0, new LiteralText("▲"), button ->
                 {
@@ -121,6 +126,7 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
                 }
             );
 
+            @SuppressWarnings("SuspiciousNameCombination")
             WidgetComponent down = new TextButton(
                     parent, 0, 0, height, height, 0, new LiteralText("▼"), button ->
                 {
@@ -137,16 +143,14 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
                 }
             );
 
-            WidgetComponent widget = array.getBuilder().build(
+            WidgetComponent widget = this.builder.build(
                     parent,
                     0,
                     dY,
                     contentWidth - height * 3,
                     height,
                     array.getDefaultValue(),
-                    v -> {
-                        array.put(index, v);
-                    },
+                    v -> array.put(index, v),
                     v -> {},
                     value
             );

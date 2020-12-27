@@ -1,6 +1,7 @@
 package dev.inkwell.vivid.widgets.compound;
 
 import dev.inkwell.vivid.builders.ConfigScreenBuilder;
+import dev.inkwell.vivid.builders.WidgetComponentBuilder;
 import dev.inkwell.vivid.screen.ConfigScreen;
 import dev.inkwell.vivid.util.Alignment;
 import dev.inkwell.vivid.util.Group;
@@ -26,21 +27,23 @@ import java.util.function.Supplier;
 
 public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements ConfigScreenBuilder {
     private final Text name;
+    private final WidgetComponentBuilder<T> builder;
     private final float scale;
     private final boolean mutable;
 
     private ConfigScreen screen;
     private boolean changed;
 
-    public TableWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Table<T>> defaultValueSupplier, Consumer<Table<T>> changedListener, Consumer<Table<T>> saveConsumer, @NotNull Table<T> value, Text name, boolean mutable) {
+    public TableWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Table<T>> defaultValueSupplier, Consumer<Table<T>> changedListener, Consumer<Table<T>> saveConsumer, @NotNull Table<T> value, Text name, WidgetComponentBuilder<T> builder, boolean mutable) {
         super(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, new Table<>(value));
         this.name = name;
         this.scale = this.height / parent.getScale();
+        this.builder = builder;
         this.mutable = mutable;
     }
 
-    public TableWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Table<T>> defaultValueSupplier, Consumer<Table<T>> changedListener, Consumer<Table<T>> saveConsumer, @NotNull Table<T> value, Text name) {
-        this(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, value, name, true);
+    public TableWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Table<T>> defaultValueSupplier, Consumer<Table<T>> changedListener, Consumer<Table<T>> saveConsumer, @NotNull Table<T> value, Text name, WidgetComponentBuilder<T> builder) {
+        this(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, value, name, builder, true);
     }
 
     @Override
@@ -57,6 +60,7 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
         for (Table.Entry<String, T> value : table) {
             int index = i++;
 
+            @SuppressWarnings("SuspiciousNameCombination")
             WidgetComponent remove = new TextButton(
                     parent, 0, 0, height, height, 0, new LiteralText("✕"), button ->
             {
@@ -80,23 +84,19 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
                     height,
                     Alignment.LEFT,
                     () -> "",
-                    v -> {
-                        table.setKey(index, v);
-                    },
+                    v -> table.setKey(index, v),
                     v -> {},
                     value.getKey()
             );
 
-            WidgetComponent valueWidget = table.getBuilder().build(
+            WidgetComponent valueWidget = this.builder.build(
                     parent,
                     0,
                     dY,
                     (contentWidth) / 2,
                     height,
                     table.getDefaultValue(),
-                    v -> {
-                        table.put(index, v);
-                    },
+                    v -> table.put(index, v),
                     v -> {},
                     value.getValue()
             );
