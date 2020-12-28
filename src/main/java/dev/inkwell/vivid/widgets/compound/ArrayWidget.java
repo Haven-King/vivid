@@ -151,7 +151,7 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
                     height,
                     array.getDefaultValue(),
                     v -> array.put(index, v),
-                    v -> {},
+                    v -> this.changed = true,
                     value
             );
 

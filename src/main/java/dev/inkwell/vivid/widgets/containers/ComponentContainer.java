@@ -8,6 +8,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ComponentContainer extends ListComponent implements Mutable {
@@ -16,19 +17,20 @@ public class ComponentContainer extends ListComponent implements Mutable {
 
     public ComponentContainer(ConfigScreen parent, int x, int y, int index, boolean shouldRenderHighlight, @NotNull WidgetComponent child, WidgetComponent... children) {
         super(parent, x, y, 0, 0, index);
-        this.init(child, children);
+        this.children.add(child);
+        this.children.addAll(Arrays.asList(children));
+        this.init();
         this.shouldRenderHighlight = shouldRenderHighlight;
     }
 
-    protected void init(WidgetComponent child, WidgetComponent... children) {
+    protected void init() {
+        WidgetComponent child = this.children.get(0);
         this.x = child.getX();
         this.y = child.getY();
         this.width = child.getWidth();
         this.height = child.getHeight();
 
-        for (WidgetComponent thing : children) {
-            this.children.add(thing);
-
+        for (WidgetComponent thing : this.children) {
             int x1 = Math.min(this.x, thing.getX());
             int y1 = Math.min(this.y, thing.getY());
             int x2 = Math.max(this.x + this.width, thing.getX() + thing.getWidth());
@@ -226,5 +228,23 @@ public class ComponentContainer extends ListComponent implements Mutable {
         }
 
         return false;
+    }
+
+    public void setX(int x) {
+        int dX = x - this.x;
+        this.x = x;
+
+        for (WidgetComponent child : this.children) {
+            child.setX(child.getX() + dX);
+        }
+    }
+
+    public void setY(int y) {
+        int dY = y - this.y;
+        this.x = x;
+
+        for (WidgetComponent child : this.children) {
+            child.setY(child.getY() + dY);
+        }
     }
 }

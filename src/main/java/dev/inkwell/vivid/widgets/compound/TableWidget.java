@@ -85,7 +85,9 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
                     Alignment.LEFT,
                     () -> "",
                     v -> table.setKey(index, v),
-                    v -> {},
+                    v -> {
+                        this.changed = true;
+                    },
                     value.getKey()
             );
 
@@ -97,7 +99,7 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
                     height,
                     table.getDefaultValue(),
                     v -> table.put(index, v),
-                    v -> {},
+                    v -> this.changed = true,
                     value.getValue()
             );
 

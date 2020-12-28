@@ -12,19 +12,14 @@ public class RowContainer extends ComponentContainer {
     }
 
     @Override
-    protected void init(WidgetComponent child, WidgetComponent... children) {
-        this.children.add(child);
-
-        child.setX(this.x);
-        child.setY(this.y);
-        this.width = child.getWidth();
-        this.height = child.getHeight();
-
-        for (WidgetComponent thing : children) {
-            this.children.add(thing);
-
+    protected void init() {
+        for (WidgetComponent thing : this.children) {
             thing.setX(this.x + this.width);
             thing.setY(this.y);
+
+            if (thing instanceof ComponentContainer) {
+                ((ComponentContainer) thing).init();
+            }
 
             this.width = this.width + thing.getWidth();
             this.height = Math.max(this.height, thing.getHeight());
