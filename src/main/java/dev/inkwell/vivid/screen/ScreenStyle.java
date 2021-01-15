@@ -1,13 +1,19 @@
 package dev.inkwell.vivid.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.inkwell.vivid.DrawableExtensions;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.RotatingCubeMapRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Style;
 import net.minecraft.text.TextColor;
+import net.minecraft.util.Identifier;
 
 import static dev.inkwell.vivid.Vivid.BLUR;
 
@@ -41,6 +47,8 @@ public class ScreenStyle extends DrawableHelper implements DrawableExtensions {
 	public int accentColor;
 	public int gradientColor;
 	public float blurAmount = 0F;
+	public Identifier backgroundTexture;
+	public int backgroundColor = 0xFF404040;
 
 	public ScreenStyle() {
 		this.categoryColor = new ElementStyle<>(
@@ -67,6 +75,8 @@ public class ScreenStyle extends DrawableHelper implements DrawableExtensions {
 		this.renderBackground(screen, parent, matrices, tickDelta);
 
 		if (blurAmount > 0F) {
+			BLUR.setUniformValue("Start", 0F, 0F);
+			BLUR.setUniformValue("End", 1F, 1F);
 			BLUR.setUniformValue("Progress", 1F);
 			BLUR.setUniformValue("Radius", blurAmount);
 			BLUR.render(1F);
@@ -74,18 +84,34 @@ public class ScreenStyle extends DrawableHelper implements DrawableExtensions {
 	}
 
 	protected void renderBackground(ConfigScreen screen, Screen parent, MatrixStack matrices, float tickDelta) {
-		if (parent == null) {
+		if (parent == null && backgroundTexture == null) {
 			screen.renderBackground(matrices);
+		} else if (backgroundTexture != null) {
+			int a = this.backgroundColor >> 24;
+			int r = (this.backgroundColor >> 16) & 0xFF;
+			int g = (this.backgroundColor >> 8) & 0xFF;
+			int b = (this.backgroundColor) & 0xFF;
+
+			Tessellator tessellator = Tessellator.getInstance();
+			BufferBuilder bufferBuilder = tessellator.getBuffer();
+			MinecraftClient.getInstance().getTextureManager().bindTexture(this.backgroundTexture);
+			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+			bufferBuilder.begin(7, VertexFormats.POSITION_TEXTURE_COLOR);
+			bufferBuilder.vertex(0.0D, screen.height, 0.0D).texture(0.0F, (float)screen.height / 32.0F).color(r, g, b, a).next();
+			bufferBuilder.vertex(screen.width, screen.height, 0.0D).texture(screen.width / 32.0F, screen.height / 32.0F).color(r, g, b, a).next();
+			bufferBuilder.vertex(screen.width, 0.0D, 0.0D).texture(screen.width / 32.0F, 0).color(r, g, b, a).next();
+			bufferBuilder.vertex(0.0D, 0.0D, 0.0D).texture(0.0F, 0).color(r, g, b, a).next();
+			tessellator.draw();
 		} else {
 			parent.renderBackground(matrices);
 		}
 	}
 
-	public void renderDecorations(MatrixStack matrices, int mouseX, int mouseY, float delta, int width, int height) {
-		fillGradient(matrices, 0, 0, width, height / 8, 0x88000000 | (gradientColor & 0x00FFFFFF), (gradientColor & 0x00FFFFFF));
-		fillGradient(matrices, 0, height - height / 8, width, height, (gradientColor & 0x00FFFFFF), 0x88000000 | (gradientColor & 0x00FFFFFF));
+	public void renderDecorations(MatrixStack matrices, int mouseX, int mouseY, float delta, int screenWidth, int screenHeight, int headerHeight) {
+		fillGradient(matrices, 0, 0, screenWidth, screenHeight / 8, 0x88000000 | (gradientColor & 0x00FFFFFF), (gradientColor & 0x00FFFFFF));
+		fillGradient(matrices, 0, screenHeight - screenHeight / 8, screenWidth, screenHeight, (gradientColor & 0x00FFFFFF), 0x88000000 | (gradientColor & 0x00FFFFFF));
 
-		line(matrices, 0, width, 12.125F, 12.125F, 0x88000000 | (accentColor & 0x00FFFFFF));
+		line(matrices, 0, screenWidth, headerHeight / 2F, headerHeight / 2F, 0x88000000 | (accentColor & 0x00FFFFFF));
 	}
 
 	public interface FromOrdinal<T> {

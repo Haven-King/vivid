@@ -1,8 +1,6 @@
 package dev.inkwell.vivid;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.render.BufferBuilder;
@@ -14,7 +12,7 @@ import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Matrix4f;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_LINES;
 
 public interface DrawableExtensions {
 	default void line(MatrixStack matrices, float x0, float x1, float y0, float y1, int color) {
@@ -47,7 +45,15 @@ public interface DrawableExtensions {
 		matrices.pop();
 	}
 
-	default void draw(MatrixStack matrices, TextRenderer textRenderer, Text text, int x, int y, int color, float scale) {
+	default void drawCenteredString(MatrixStack matrices, TextRenderer textRenderer, String string, float centerX, float y, int color, float scale) {
+		matrices.push();
+		matrices.scale(scale, scale, 1F);
+		matrices.translate(centerX / scale, (y + textRenderer.fontHeight / 2F) / scale, 0);
+		DrawableHelper.drawCenteredString(matrices, textRenderer, string, 0, -textRenderer.fontHeight / 2, color);
+		matrices.pop();
+	}
+
+	default void draw(MatrixStack matrices, TextRenderer textRenderer, Text text, float x, float y, int color, float scale) {
 		matrices.push();
 		matrices.scale(scale, scale, 1F);
 		matrices.translate(x / scale, (y + textRenderer.fontHeight / 2F) / scale, 0);
@@ -63,7 +69,7 @@ public interface DrawableExtensions {
 		matrices.pop();
 	}
 
-	default void draw(MatrixStack matrices, TextRenderer textRenderer, String text, int x, int y, int color, float scale) {
+	default void draw(MatrixStack matrices, TextRenderer textRenderer, String text, float x, float y, int color, float scale) {
 		matrices.push();
 		matrices.scale(scale, scale, 1F);
 		matrices.translate(x / scale, (y + textRenderer.fontHeight / 2F) / scale, 0);

@@ -1,55 +1,48 @@
 package dev.inkwell.vivid.builders;
 
-import dev.inkwell.vivid.entry.base.ListEntry;
+import dev.inkwell.vivid.screen.ConfigScreen;
 import dev.inkwell.vivid.util.Group;
-import dev.inkwell.vivid.util.Quad;
+import dev.inkwell.vivid.widgets.LabelComponent;
+import dev.inkwell.vivid.widgets.SpacerComponent;
+import dev.inkwell.vivid.widgets.WidgetComponent;
+import dev.inkwell.vivid.widgets.value.SectionHeaderComponent;
 import net.minecraft.text.MutableText;
-import net.minecraft.util.Pair;
+import net.minecraft.text.Text;
 
-import java.util.function.Supplier;
-
-public class SectionBuilder extends Group<Object> {
+public class SectionBuilder extends Group<SectionBuilder.WidgetBuilder> {
 	public SectionBuilder(MutableText title) {
 		super(title);
 	}
 
-	public <T> SectionBuilder add(MutableText name, Supplier<T> defaultValue, Supplier<T> value, ValueEntryBuilder<T> valueEntryBuilder) {
-		this.add(new ValueBuilder<>(name, defaultValue, value, valueEntryBuilder));
+	public SectionBuilder addTooltip(Text tooltip) {
+		this.add(tooltip);
+
 		return this;
 	}
 
-	public SectionBuilder add(MutableText name, ListEntryBuilder entryBuilder) {
-		this.add(new ListBuilder(name, entryBuilder));
-		return this;
-	}
+	public Group<WidgetComponent> build(ConfigScreen parent, int contentLeft, int contentWidth, int y, Integer index) {
+		Group<WidgetComponent> section = new Group<>(this.name);
+		section.addAll(this.tooltips);
 
-	@SuppressWarnings("unchecked")
-	public Group<ListEntry> build() {
-		Group<ListEntry> section = new Group<>(this.name);
+		int offset = y;
 
-		for (Object group : this) {
-			if (group instanceof ValueBuilder) {
-				ValueBuilder<?> valueBuilder = (ValueBuilder<?>) group;
-				section.add(
-						((ValueBuilder<?>) group).getD().build(valueBuilder.getA(), (Supplier<Object>) valueBuilder.getB(), valueBuilder.getC().get())
-				);
-			} else if (group instanceof ListBuilder) {
-				section.add(((ListBuilder) group).getRight().build(((ListBuilder) group).getLeft()));
-			}
+		if (!this.getName().getString().isEmpty()) {
+			WidgetComponent component = new SectionHeaderComponent(parent, contentLeft, offset, contentWidth, (int) (45 * parent.getScale()), this.name, false).withColor(parent.getStyle().sectionColor);
+			section.add(component);
+			offset += component.getHeight();
+		}
+
+		for (WidgetBuilder builder : this) {
+			WidgetComponent component = builder.build(parent, contentWidth, contentLeft, offset, index++);
+			section.add(component);
+			offset += component.getHeight();
 		}
 
 		return section;
 	}
 
-	static class ListBuilder extends Pair<MutableText, ListEntryBuilder> {
-		public ListBuilder(MutableText left, ListEntryBuilder right) {
-			super(left, right);
-		}
-	}
-
-	static class ValueBuilder<T> extends Quad<MutableText, Supplier<T>, Supplier<T>, ValueEntryBuilder<T>> {
-		public ValueBuilder(MutableText mutableText, Supplier<T> tSupplier, Supplier<T> tSupplier2, ValueEntryBuilder<T> valueEntryBuilder) {
-			super(mutableText, tSupplier, tSupplier2, valueEntryBuilder);
-		}
+	@FunctionalInterface
+	public interface WidgetBuilder {
+		WidgetComponent build(ConfigScreen parent, int width, int x, int y, int index);
 	}
 }
