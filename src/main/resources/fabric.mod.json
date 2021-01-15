@@ -10,12 +10,9 @@
   "icon": "assets/vivid/icon.png",
   "environment": "client",
   "entrypoints": {
-    "client": ["dev.inkwell.vivid.Vivid"],
-    "modmenu": ["dev.inkwell.vivid.VividConfig"]
+    "client": ["dev.monarkhes.vivid.Vivid"],
+    "modmenu": ["dev.monarkhes.vivid.VividConfig"]
   },
-  "mixins": [
-    "vivid-config-screens.mixins.json"
-  ],
   "depends": {
     "fabricloader": ">=0.10.6+build.214",
     "fabric": "*",
