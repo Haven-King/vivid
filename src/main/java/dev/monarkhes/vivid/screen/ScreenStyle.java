@@ -19,10 +19,10 @@ import static dev.monarkhes.vivid.Vivid.BLUR;
 
 public class ScreenStyle extends DrawableHelper implements DrawableExtensions {
 	public static final ScreenStyle DEFAULT = new ScreenStyle();
-	public static final ScreenStyle NETHER;
+	public static final ScreenStyle TITLE;
 
 	static {
-		NETHER = new ScreenStyle() {
+		TITLE = new ScreenStyle() {
 			private final RotatingCubeMapRenderer backgroundRenderer =
 					new RotatingCubeMapRenderer(TitleScreen.PANORAMA_CUBE_MAP);
 
@@ -33,7 +33,7 @@ public class ScreenStyle extends DrawableHelper implements DrawableExtensions {
 			}
 		};
 
-		NETHER.blurAmount = 8F;
+		TITLE.blurAmount = 8F;
 	}
 
 	public ElementStyle<Style> categoryColor;

@@ -1,15 +1,16 @@
 package dev.monarkhes.vivid.widgets.compound;
 
+import dev.monarkhes.vivid.Category;
 import dev.monarkhes.vivid.builders.ConfigScreenBuilder;
-import dev.monarkhes.vivid.builders.WidgetComponentBuilder;
+import dev.monarkhes.vivid.builders.WidgetComponentFactory;
 import dev.monarkhes.vivid.screen.ConfigScreen;
-import dev.monarkhes.vivid.util.Array;
 import dev.monarkhes.vivid.util.Group;
 import dev.monarkhes.vivid.widgets.Mutable;
 import dev.monarkhes.vivid.widgets.TextButton;
 import dev.monarkhes.vivid.widgets.WidgetComponent;
 import dev.monarkhes.vivid.widgets.containers.RowContainer;
 import dev.monarkhes.vivid.widgets.value.ValueWidgetComponent;
+import net.fabricmc.loader.api.config.util.Array;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -25,13 +26,13 @@ import java.util.function.Supplier;
 
 public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements ConfigScreenBuilder {
     private final Text name;
-    private final WidgetComponentBuilder<T> builder;
+    private final WidgetComponentFactory<T> builder;
     private final float scale;
 
     private ConfigScreen screen;
     private boolean changed;
 
-    public ArrayWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Array<T>> defaultValueSupplier, Consumer<Array<T>> changedListener, Consumer<Array<T>> saveConsumer, @NotNull Array<T> value, Text name, WidgetComponentBuilder<T> builder) {
+    public ArrayWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Array<T>> defaultValueSupplier, Consumer<Array<T>> changedListener, Consumer<Array<T>> saveConsumer, @NotNull Array<T> value, Text name, WidgetComponentFactory<T> builder) {
         super(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, new Array<>(value));
         this.name = name;
         this.builder = builder;
@@ -58,7 +59,9 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.isMouseOver(mouseX, mouseY)) {
-            MinecraftClient.getInstance().openScreen((this.screen = new ConfigScreen(this.parent, this)));
+            this.parent.tryLeave(() -> {
+                MinecraftClient.getInstance().openScreen((this.screen = new ConfigScreen(this.parent, this)));
+            });
         }
 
         return false;
@@ -80,17 +83,15 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
     }
 
     @Override
-    public List<Group<Group<WidgetComponent>>> build(ConfigScreen parent, int contentLeft, int contentWidth, int y) {
+    public List<Category> build(ConfigScreen parent, int contentLeft, int contentWidth, int y) {
         Group<WidgetComponent> section = new Group<>();
-        List<Group<Group<WidgetComponent>>> categories = Collections.singletonList(new Group<>((MutableText) this.name));
+        List<Category> categories = Collections.singletonList(new Category((MutableText) this.name));
         categories.get(0).add(section);
-
-        Array<T> array = this.getValue();
 
         int i = 0;
         int dY = y;
         int height = (int) (this.scale * parent.getScale());
-        for (T value : array) {
+        for (T value : this.getValue()) {
             int index = i++;
 
             @SuppressWarnings("SuspiciousNameCombination")
@@ -113,10 +114,22 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
             WidgetComponent up = new TextButton(
                     parent, 0, 0, height, height, 0, new LiteralText("▲"), button ->
                 {
+                    Array<T> array = this.getValue();
                     if (index > 0 && array.size() >= 2) {
                         T temp = array.get(index);
-                        array.put(index, array.get(index - 1));
-                        array.put(index - 1, temp);
+
+                        //noinspection unchecked
+                        T[] a = (T[]) java.lang.reflect.Array.newInstance(array.getValueClass(), array.size());
+
+                        for (int j = 0; j < a.length; ++j) {
+                            a[j] = array.get(j);
+                        }
+
+                        a[index] = a[index - 1];
+                        a[index - 1] = temp;
+
+                        this.setValue(new Array<>(array.getValueClass(), array.getDefaultValue(), a));
+
                         this.screen.setProvider(this);
                         this.changed = true;
                         return true;
@@ -130,10 +143,22 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
             WidgetComponent down = new TextButton(
                     parent, 0, 0, height, height, 0, new LiteralText("▼"), button ->
                 {
+                    Array<T> array = this.getValue();
                     if (index < array.size() - 1 && array.size() >= 2) {
                         T temp = array.get(index);
-                        array.put(index, array.get(index + 1));
-                        array.put(index + 1, temp);
+
+                        //noinspection unchecked
+                        T[] a = (T[]) java.lang.reflect.Array.newInstance(array.getValueClass(), array.size());
+
+                        for (int j = 0; j < a.length; ++j) {
+                            a[j] = array.get(j);
+                        }
+
+                        a[index] = a[index];
+                        a[index + 1] = temp;
+
+                        this.setValue(new Array<>(array.getValueClass(), array.getDefaultValue(), a));
+
                         this.screen.setProvider(this);
                         this.changed = true;
                         return true;
@@ -149,8 +174,8 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
                     dY,
                     contentWidth - height * 3,
                     height,
-                    array.getDefaultValue(),
-                    v -> array.put(index, v),
+                    this.getValue().getDefaultValue(),
+                    v -> this.setValue(this.getValue().set(index, v)),
                     v -> this.changed = true,
                     value
             );
@@ -160,7 +185,7 @@ public class ArrayWidget<T> extends ValueWidgetComponent<Array<T>> implements Co
         }
 
         section.add(new AddButton(parent, contentLeft, dY, contentWidth, height, 0x40000000, new LiteralText("+"), button -> {
-            this.getValue().addEntry();
+            this.setValue(this.getValue().addEntry());
             this.screen.setProvider(this);
             this.changed = true;
             return true;

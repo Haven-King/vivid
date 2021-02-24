@@ -87,10 +87,14 @@ public abstract class TextWidgetComponent<T> extends ValueWidgetComponent<T> imp
                 new LiteralText(text),
                 x,
                 this.textYPos(),
-                this.hasError() ? Formatting.RED.getColorValue() : 0xFFFFFFFF,
+                this.hasError() ? 0xFF5555 : this.getColor(),
                 this.parent.getScale()
         );
 
+    }
+
+    protected int getColor() {
+        return 0xFFFFFFFF;
     }
 
     @Override

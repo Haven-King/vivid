@@ -26,6 +26,7 @@ public class SectionBuilder extends Group<SectionBuilder.WidgetBuilder> {
 
 		if (!this.getName().getString().isEmpty()) {
 			WidgetComponent component = new SectionHeaderComponent(parent, contentLeft, offset, contentWidth, (int) (45 * parent.getScale()), this.name, false).withColor(parent.getStyle().sectionColor);
+			component.addTooltips(this.tooltips);
 			section.add(component);
 			offset += component.getHeight();
 		}

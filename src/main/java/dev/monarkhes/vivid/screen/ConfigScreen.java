@@ -1,6 +1,7 @@
 package dev.monarkhes.vivid.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import dev.monarkhes.vivid.Category;
 import dev.monarkhes.vivid.DrawableExtensions;
 import dev.monarkhes.vivid.builders.ConfigScreenBuilder;
 import dev.monarkhes.vivid.util.Group;
@@ -23,6 +24,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
@@ -37,7 +39,7 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 	private final Screen parent;
 	private ConfigScreenBuilder provider;
 
-	private List<Group<Group<WidgetComponent>>> categories;
+	private List<Category> categories;
 
 	private boolean isSaveDialogOpen = false;
 
@@ -67,6 +69,8 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 
 	private AbstractButtonWidget yesButton;
 	private AbstractButtonWidget noButton;
+
+	private Runnable andThen = this::onClose;
 
 	public ConfigScreen(Screen parent, ConfigScreenBuilder provider) {
 		super(LiteralText.EMPTY);
@@ -134,7 +138,14 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 						}
 					});
 
-					this.onClose();
+					this.categories.forEach(Category::save);
+
+					this.andThen.run();
+					this.andThen = this::onClose;
+
+					this.isSaveDialogOpen = false;
+					yesButton.visible = false;
+					noButton.visible = false;
 				}
 		);
 
@@ -161,7 +172,8 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 					categoryWidth,
 					12,
 					categories.get(i).getName(),
-					(b) -> this.setActiveCategory(categoryId), categories.get(i).getTooltips());
+					(b) -> this.tryLeave(() -> this.setActiveCategory(categoryId)),
+					categories.get(categoryId).getTooltips());
 
 			if (i == activeCategory) {
 				button.active = false;
@@ -231,10 +243,6 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		this.iterateActive(widget -> {
 			if (widget != this.getFocused()) {
 				widget.render(matrices, mouseX, mouseY, tickDelta, true);
-			}
-
-			if (widget.isMouseOver(mouseX, mouseY)) {
-				widget.addTooltipsToList(this.tooltips);
 			}
 		});
 
@@ -448,6 +456,24 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		return changed.getValue();
 	}
 
+	public boolean tryLeave(@NotNull Runnable andThen) {
+		int changed = this.changedCount();
+
+		if (changed > 0) {
+			this.isSaveDialogOpen = true;
+			yesButton.visible = true;
+			noButton.visible = true;
+
+			this.andThen = andThen;
+
+			return false;
+		}
+
+		andThen.run();
+
+		return true;
+	}
+
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 		if (this.isSaveDialogOpen) {
@@ -482,8 +508,10 @@ public class ConfigScreen extends Screen implements DrawableExtensions {
 		return this.style;
 	}
 
-	public void addTooltips(List<Text> tooltips) {
-		this.tooltips.addAll(tooltips);
+	public void addTooltips(TooltipAccess widget) {
+		if (widget.isMouseOver(this.lastMouseX, lastMouseY)) {
+			widget.addTooltips(this.tooltips::add);
+		}
 	}
 
 	@Override

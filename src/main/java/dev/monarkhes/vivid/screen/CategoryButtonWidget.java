@@ -10,8 +10,9 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
 import java.util.List;
+import java.util.function.Consumer;
 
-public class CategoryButtonWidget extends ButtonWidget implements DrawableExtensions {
+public class CategoryButtonWidget extends ButtonWidget implements DrawableExtensions, TooltipAccess {
 	private final ConfigScreen parent;
 	private final List<Text> tooltips;
 
@@ -46,8 +47,11 @@ public class CategoryButtonWidget extends ButtonWidget implements DrawableExtens
 		this.parent.getStyle().renderCategoryButtonDecorations(this, matrices, x, y, width, height);
 		matrices.pop();
 
-		if (this.isHovered()) {
-			this.parent.addTooltips(this.tooltips);
-		}
+		this.parent.addTooltips(this);
+	}
+
+	@Override
+	public void addTooltips(Consumer<Text> tooltipConsumer) {
+		this.tooltips.forEach(tooltipConsumer);
 	}
 }

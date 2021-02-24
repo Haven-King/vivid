@@ -3,6 +3,7 @@ package dev.monarkhes.vivid.widgets;
 import dev.monarkhes.vivid.DrawableExtensions;
 import dev.monarkhes.vivid.VividConfig;
 import dev.monarkhes.vivid.screen.ConfigScreen;
+import dev.monarkhes.vivid.screen.TooltipAccess;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.Element;
@@ -11,9 +12,11 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
-public abstract class WidgetComponent implements Element, DrawableExtensions, TickableElement {
+public abstract class WidgetComponent implements Element, DrawableExtensions, TickableElement, TooltipAccess {
     protected final ConfigScreen parent;
     private final List<Text> tooltips = new ArrayList<>();
     protected int x, y, width, height;
@@ -43,9 +46,7 @@ public abstract class WidgetComponent implements Element, DrawableExtensions, Ti
 
         this.renderContents(matrixStack, mouseX, mouseY, delta);
 
-        if (this.isMouseOver(mouseX, mouseY)) {
-            this.addTooltipsToList(parent.tooltips);
-        }
+        parent.addTooltips(this);
     }
 
     public abstract void renderBackground(MatrixStack matrixStack, int mouseX, int mouseY, float delta);
@@ -64,8 +65,14 @@ public abstract class WidgetComponent implements Element, DrawableExtensions, Ti
         this.y += amount;
     }
 
-    public final void addTooltips(List<Text> tooltips) {
+    // The tooltip collection should be ordered.
+    public final void addTooltips(Collection<Text> tooltips) {
         this.tooltips.addAll(tooltips);
+    }
+
+    @Override
+    public void addTooltips(Consumer<Text> tooltipConsumer) {
+        this.tooltips.forEach(tooltipConsumer);
     }
 
     public void addTooltipsToList(List<Text> tooltips) {

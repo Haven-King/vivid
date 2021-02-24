@@ -1,17 +1,18 @@
 package dev.monarkhes.vivid.widgets.compound;
 
+import dev.monarkhes.vivid.Category;
 import dev.monarkhes.vivid.builders.ConfigScreenBuilder;
-import dev.monarkhes.vivid.builders.WidgetComponentBuilder;
+import dev.monarkhes.vivid.builders.WidgetComponentFactory;
 import dev.monarkhes.vivid.screen.ConfigScreen;
 import dev.monarkhes.vivid.util.Alignment;
 import dev.monarkhes.vivid.util.Group;
-import dev.monarkhes.vivid.util.Table;
 import dev.monarkhes.vivid.widgets.Mutable;
 import dev.monarkhes.vivid.widgets.TextButton;
 import dev.monarkhes.vivid.widgets.WidgetComponent;
 import dev.monarkhes.vivid.widgets.containers.RowContainer;
 import dev.monarkhes.vivid.widgets.value.ValueWidgetComponent;
 import dev.monarkhes.vivid.widgets.value.entry.StringEntryWidget;
+import net.fabricmc.loader.api.config.util.Table;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -27,14 +28,14 @@ import java.util.function.Supplier;
 
 public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements ConfigScreenBuilder {
     private final Text name;
-    private final WidgetComponentBuilder<T> builder;
+    private final WidgetComponentFactory<T> builder;
     private final float scale;
     private final boolean mutable;
 
     private ConfigScreen screen;
     private boolean changed;
 
-    public TableWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Table<T>> defaultValueSupplier, Consumer<Table<T>> changedListener, Consumer<Table<T>> saveConsumer, @NotNull Table<T> value, Text name, WidgetComponentBuilder<T> builder, boolean mutable) {
+    public TableWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Table<T>> defaultValueSupplier, Consumer<Table<T>> changedListener, Consumer<Table<T>> saveConsumer, @NotNull Table<T> value, Text name, WidgetComponentFactory<T> builder, boolean mutable) {
         super(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, new Table<>(value));
         this.name = name;
         this.scale = this.height / parent.getScale();
@@ -42,29 +43,27 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
         this.mutable = mutable;
     }
 
-    public TableWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Table<T>> defaultValueSupplier, Consumer<Table<T>> changedListener, Consumer<Table<T>> saveConsumer, @NotNull Table<T> value, Text name, WidgetComponentBuilder<T> builder) {
+    public TableWidget(ConfigScreen parent, int x, int y, int width, int height, Supplier<@NotNull Table<T>> defaultValueSupplier, Consumer<Table<T>> changedListener, Consumer<Table<T>> saveConsumer, @NotNull Table<T> value, Text name, WidgetComponentFactory<T> builder) {
         this(parent, x, y, width, height, defaultValueSupplier, changedListener, saveConsumer, value, name, builder, true);
     }
 
     @Override
-    public List<Group<Group<WidgetComponent>>> build(ConfigScreen parent, int contentLeft, int contentWidth, int y) {
+    public List<Category> build(ConfigScreen parent, int contentLeft, int contentWidth, int y) {
         Group<WidgetComponent> section = new Group<>();
-        List<Group<Group<WidgetComponent>>> categories = Collections.singletonList(new Group<>((MutableText) this.name));
+        List<Category> categories = Collections.singletonList(new Category((MutableText) this.name));
         categories.get(0).add(section);
-
-        Table<T> table = this.getValue();
 
         int i = 0;
         int dY = y;
         int height = (int) (this.scale * parent.getScale());
-        for (Table.Entry<String, T> value : table) {
+        for (Table.Entry<String, T> value : this.getValue()) {
             int index = i++;
 
             @SuppressWarnings("SuspiciousNameCombination")
             WidgetComponent remove = new TextButton(
                     parent, 0, 0, height, height, 0, new LiteralText("✕"), button ->
             {
-                table.remove(index);
+                this.setValue(this.getValue().remove(index));
                 this.screen.setProvider(this);
                 this.changed = true;
                 return true;
@@ -84,10 +83,8 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
                     height,
                     Alignment.LEFT,
                     () -> "",
-                    v -> table.setKey(index, v),
-                    v -> {
-                        this.changed = true;
-                    },
+                    v -> this.setValue(this.getValue().setKey(index, v)),
+                    v -> this.changed = true,
                     value.getKey()
             );
 
@@ -97,8 +94,8 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
                     dY,
                     (contentWidth) / 2,
                     height,
-                    table.getDefaultValue(),
-                    v -> table.put(index, v),
+                    this.getValue().getDefaultValue(),
+                    v -> this.setValue(this.getValue().set(index, v)),
                     v -> this.changed = true,
                     value.getValue()
             );
@@ -114,7 +111,7 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
 
         if (this.mutable) {
             section.add(new TextButton(parent, contentLeft, dY, contentWidth, height, 0x40000000, new LiteralText("+"), button -> {
-                this.getValue().addEntry();
+                this.setValue(this.getValue().addEntry());
                 this.screen.setProvider(this);
                 this.changed = true;
                 return true;
@@ -139,7 +136,9 @@ public class TableWidget<T> extends ValueWidgetComponent<Table<T>> implements Co
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.isMouseOver(mouseX, mouseY)) {
-            MinecraftClient.getInstance().openScreen((this.screen = new ConfigScreen(this.parent, this)));
+            this.parent.tryLeave(() -> {
+                MinecraftClient.getInstance().openScreen((this.screen = new ConfigScreen(this.parent, this)));
+            });
         }
 
         return false;

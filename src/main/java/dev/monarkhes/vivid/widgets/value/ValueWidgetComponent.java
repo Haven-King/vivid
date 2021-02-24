@@ -1,9 +1,9 @@
 package dev.monarkhes.vivid.widgets.value;
 
-import dev.monarkhes.vivid.constraints.Constraint;
 import dev.monarkhes.vivid.screen.ConfigScreen;
 import dev.monarkhes.vivid.widgets.Mutable;
 import dev.monarkhes.vivid.widgets.WidgetComponent;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.NotNull;
@@ -81,8 +81,8 @@ public abstract class ValueWidgetComponent<T> extends WidgetComponent implements
     public void addTooltipsToList(List<Text> tooltips) {
         super.addTooltipsToList(tooltips);
 
-        if (this instanceof Constraint) {
-            ((Constraint) this).addConstraintTooltips(tooltips);
+        if (tooltips.size() > 0) {
+            tooltips.add(LiteralText.EMPTY);
         }
 
         tooltips.add(new TranslatableText("vivid.default", this.getDefaultValueAsText()));

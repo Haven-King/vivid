@@ -1,5 +1,6 @@
 package dev.monarkhes.vivid.builders;
 
+import dev.monarkhes.vivid.Category;
 import dev.monarkhes.vivid.screen.ConfigScreen;
 import dev.monarkhes.vivid.util.Group;
 import dev.monarkhes.vivid.widgets.SpacerComponent;
@@ -7,7 +8,12 @@ import dev.monarkhes.vivid.widgets.WidgetComponent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
+import java.util.function.BooleanSupplier;
+
 public class CategoryBuilder extends Group<SectionBuilder> {
+	private Runnable saveCallback = () -> {};
+	private BooleanSupplier condition = () -> true;
+
 	public CategoryBuilder(MutableText name) {
 		super(name);
 	}
@@ -27,8 +33,22 @@ public class CategoryBuilder extends Group<SectionBuilder> {
 		return this.addSection(new SectionBuilder(name));
 	}
 
-	public Group<Group<WidgetComponent>> build(ConfigScreen parent, int contentLeft, int contentWidth, int headerOffset) {
-		Group<Group<WidgetComponent>> category = new Group<>(this.name);
+	public CategoryBuilder setSaveCallback(Runnable saveCallback) {
+		this.saveCallback = saveCallback;
+		return this;
+	}
+
+	public CategoryBuilder setCondition(BooleanSupplier condition) {
+		this.condition = condition;
+		return this;
+	}
+
+	public boolean shouldShow() {
+		return this.condition.getAsBoolean();
+	}
+
+	public Category build(ConfigScreen parent, int contentLeft, int contentWidth, int headerOffset) {
+		Category category = new Category(this.name, this.saveCallback);
 		category.addAll(this.tooltips);
 
 		int y = headerOffset;

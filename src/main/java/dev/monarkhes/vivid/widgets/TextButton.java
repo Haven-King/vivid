@@ -7,6 +7,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
+import org.lwjgl.glfw.GLFW;
 
 public class TextButton extends WidgetComponent {
     private final Action onClick;
@@ -72,7 +73,7 @@ public class TextButton extends WidgetComponent {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isMouseOver(mouseX, mouseY)) {
+        if (this.isMouseOver(mouseX, mouseY) && button == GLFW.GLFW_MOUSE_BUTTON_1) {
             return this.onClick.onClick(this);
         }
 

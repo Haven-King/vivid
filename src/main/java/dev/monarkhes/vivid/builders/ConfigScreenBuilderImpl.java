@@ -1,5 +1,6 @@
 package dev.monarkhes.vivid.builders;
 
+import dev.monarkhes.vivid.Category;
 import dev.monarkhes.vivid.screen.ConfigScreen;
 import dev.monarkhes.vivid.screen.ScreenStyle;
 import dev.monarkhes.vivid.util.Group;
@@ -27,11 +28,13 @@ public class ConfigScreenBuilderImpl implements ConfigScreenBuilder {
 	}
 
 	@Override
-	public List<Group<Group<WidgetComponent>>> build(ConfigScreen parent, int contentLeft, int contentWidth, int y) {
-		List<Group<Group<WidgetComponent>>> categories = new ArrayList<>();
+	public List<Category> build(ConfigScreen parent, int contentLeft, int contentWidth, int y) {
+		List<Category> categories = new ArrayList<>();
 
 		for (CategoryBuilder categoryBuilder : children) {
-			categories.add(categoryBuilder.build(parent, contentLeft, contentWidth, y));
+			if (categoryBuilder.shouldShow()) {
+				categories.add(categoryBuilder.build(parent, contentLeft, contentWidth, y));
+			}
 		}
 
 		return categories;
